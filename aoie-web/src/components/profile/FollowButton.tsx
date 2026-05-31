@@ -1,51 +1,30 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+
+import FollowStats from "@/components/profile/FollowStats";
 
 interface FollowButtonProps {
   userId: string;
+  initialFollowing: boolean;
+  initialFollowersCount: number;
+  initialFollowingCount: number;
 }
 
 export default function FollowButton({
   userId,
+  initialFollowing,
+  initialFollowersCount,
+  initialFollowingCount,
 }: FollowButtonProps) {
-  const [loading, setLoading] =
-    useState(true);
-
   const [following, setFollowing] =
-    useState(false);
+    useState(initialFollowing);
 
   const [followersCount, setFollowersCount] =
-    useState(0);
+    useState(initialFollowersCount);
 
-  useEffect(() => {
-    fetchFollowStatus();
-  }, []);
-
-  async function fetchFollowStatus() {
-    try {
-      const response = await fetch(
-        `/api/users/${userId}/follow`
-      );
-
-      const data =
-        await response.json();
-
-      if (data.success) {
-        setFollowing(
-          data.following
-        );
-
-        setFollowersCount(
-          data.followersCount
-        );
-      }
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  }
+  const [followingCount] =
+    useState(initialFollowingCount);
 
   async function handleFollow() {
     try {
@@ -75,16 +54,8 @@ export default function FollowButton({
     }
   }
 
-  if (loading) {
-    return (
-      <div className="text-sm text-slate-500">
-        Loading...
-      </div>
-    );
-  }
-
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex flex-wrap items-center gap-4">
       <button
         onClick={handleFollow}
         className={`rounded-md px-4 py-2 text-sm font-medium transition ${
@@ -98,9 +69,11 @@ export default function FollowButton({
           : "Follow"}
       </button>
 
-      <span className="text-sm text-slate-600">
-        {followersCount} followers
-      </span>
+      <FollowStats
+        userId={userId}
+        followersCount={followersCount}
+        followingCount={followingCount}
+      />
     </div>
   );
 }

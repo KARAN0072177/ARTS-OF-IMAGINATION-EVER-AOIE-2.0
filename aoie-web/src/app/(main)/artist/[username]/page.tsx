@@ -1,9 +1,12 @@
+import { getServerSession } from "next-auth";
 import { notFound } from "next/navigation";
 
+import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 
 import User from "@/models/User";
 import Artwork from "@/models/Artwork";
+import Follow from "@/models/Follow";
 
 import ArtworkCard from "@/components/artwork/ArtworkCard";
 
@@ -29,6 +32,9 @@ export default async function ArtistPage({
 }: ArtistPageProps) {
   const { username } = await params;
 
+  const session =
+    await getServerSession(authOptions);
+
   await connectDB();
 
   const artist = await User.findOne({
@@ -48,6 +54,25 @@ export default async function ArtistPage({
       createdAt: -1,
     })
     .lean()) as unknown as ArtistArtwork[];
+
+  const [
+    followersCount,
+    followingCount,
+    existingFollow,
+  ] = await Promise.all([
+    Follow.countDocuments({
+      following: artist._id,
+    }),
+    Follow.countDocuments({
+      follower: artist._id,
+    }),
+    session?.user?.id
+      ? Follow.findOne({
+          follower: session.user.id,
+          following: artist._id,
+        }).lean()
+      : null,
+  ]);
 
   return (
     <section className="space-y-8">
@@ -76,7 +101,12 @@ export default async function ArtistPage({
           </p>
 
           <div className="mt-4">
-            <FollowButton userId={artist._id.toString()} />
+            <FollowButton
+              userId={artist._id.toString()}
+              initialFollowing={!!existingFollow}
+              initialFollowersCount={followersCount}
+              initialFollowingCount={followingCount}
+            />
           </div>
 
           {artist.artistProfile?.bio && (

@@ -3,8 +3,10 @@ import { redirect } from "next/navigation";
 
 import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
+import Follow from "@/models/Follow";
 import User from "@/models/User";
 import BecomeArtistButton from "@/components/profile/BecomeArtistButton";
+import FollowStats from "@/components/profile/FollowStats";
 
 function formatDate(date: Date) {
   return new Intl.DateTimeFormat("en", {
@@ -39,6 +41,16 @@ export default async function ProfilePage() {
     ["Joined", formatDate(user.createdAt)],
     ["Last updated", formatDate(user.updatedAt)],
   ];
+
+  const [followersCount, followingCount] =
+    await Promise.all([
+      Follow.countDocuments({
+        following: user._id,
+      }),
+      Follow.countDocuments({
+        follower: user._id,
+      }),
+    ]);
 
   return (
     <section>
@@ -78,6 +90,14 @@ export default async function ProfilePage() {
                 ? "Verified email"
                 : "Email pending"}
             </span>
+          </div>
+
+          <div className="mt-5">
+            <FollowStats
+              userId={user._id.toString()}
+              followersCount={followersCount}
+              followingCount={followingCount}
+            />
           </div>
 
           {user.role === "user" ? (

@@ -6,6 +6,28 @@ import { connectDB } from "@/lib/db";
 import User from "@/models/User";
 import Follow from "@/models/Follow";
 
+interface FollowListUser {
+  _id: {
+    toString(): string;
+  };
+  username: string;
+  role: string;
+  artistProfile?: {
+    displayName?: string;
+  };
+}
+
+interface PopulatedFollow {
+  follower?: FollowListUser;
+  following?: FollowListUser;
+}
+
+function isFollowListUser(
+  user: FollowListUser | undefined
+): user is FollowListUser {
+  return Boolean(user);
+}
+
 interface RouteProps {
   params: Promise<{
     id: string;
@@ -143,6 +165,10 @@ export async function GET(
 
     await connectDB();
 
+    const listType = new URL(
+      req.url
+    ).searchParams.get("list");
+
     const targetUser =
       await User.findById(id);
 
@@ -186,6 +212,59 @@ export async function GET(
 
       following =
         !!existingFollow;
+    }
+
+    if (
+      listType === "followers" ||
+      listType === "following"
+    ) {
+      const followDocs =
+        listType === "followers"
+          ? await Follow.find({
+              following: id,
+            })
+              .populate(
+                "follower",
+                "username role artistProfile"
+              )
+              .sort({ createdAt: -1 })
+              .lean()
+          : await Follow.find({
+              follower: id,
+            })
+              .populate(
+                "following",
+                "username role artistProfile"
+              )
+              .sort({ createdAt: -1 })
+              .lean();
+
+      const users = (
+        followDocs as unknown as PopulatedFollow[]
+      )
+        .map((follow) =>
+          listType === "followers"
+            ? follow.follower
+            : follow.following
+        )
+        .filter(isFollowListUser)
+        .map((user) => ({
+          id: user._id.toString(),
+          username: user.username,
+          role: user.role,
+          displayName:
+            user.artistProfile
+              ?.displayName ||
+            user.username,
+        }));
+
+      return Response.json({
+        success: true,
+        users,
+        following,
+        followersCount,
+        followingCount,
+      });
     }
 
     return Response.json({
