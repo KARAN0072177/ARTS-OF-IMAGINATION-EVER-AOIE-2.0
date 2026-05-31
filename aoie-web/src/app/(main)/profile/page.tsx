@@ -1,0 +1,104 @@
+import { getServerSession } from "next-auth";
+import { redirect } from "next/navigation";
+
+import { authOptions } from "@/lib/auth";
+import { connectDB } from "@/lib/db";
+import User from "@/models/User";
+
+function formatDate(date: Date) {
+  return new Intl.DateTimeFormat("en", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(date);
+}
+
+export default async function ProfilePage() {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user?.id) {
+    redirect("/login");
+  }
+
+  await connectDB();
+
+  const user = await User.findById(session.user.id)
+    .select("username email role isVerified createdAt updatedAt")
+    .lean();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const details = [
+    ["Username", user.username],
+    ["Email", user.email],
+    ["Role", user.role],
+    ["Email status", user.isVerified ? "Verified" : "Not verified"],
+    ["Joined", formatDate(user.createdAt)],
+    ["Last updated", formatDate(user.updatedAt)],
+  ];
+
+  return (
+    <section>
+      <div className="mb-8">
+        <p className="text-sm font-semibold uppercase tracking-[0.16em] text-cyan-700">
+          Account
+        </p>
+        <h1 className="mt-3 text-3xl font-semibold text-slate-950">
+          Profile
+        </h1>
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+          Basic account details stored in MongoDB for your logged-in user.
+        </p>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
+        <aside className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="flex items-center gap-4">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-950 text-lg font-semibold text-white">
+              {user.username.slice(0, 1).toUpperCase()}
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-slate-950">
+                {user.username}
+              </h2>
+              <p className="mt-1 text-sm text-slate-600">{user.email}</p>
+            </div>
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-2">
+            <span className="rounded-full bg-cyan-50 px-3 py-1 text-xs font-semibold capitalize text-cyan-700">
+              {user.role}
+            </span>
+            <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+              {user.isVerified ? "Verified email" : "Email pending"}
+            </span>
+          </div>
+        </aside>
+
+        <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+          <h2 className="text-base font-semibold text-slate-950">
+            Basic details
+          </h2>
+
+          <dl className="mt-5 divide-y divide-slate-200">
+            {details.map(([label, value]) => (
+              <div
+                key={label}
+                className="grid gap-1 py-4 sm:grid-cols-[180px_1fr] sm:gap-6"
+              >
+                <dt className="text-sm font-medium text-slate-500">
+                  {label}
+                </dt>
+                <dd className="text-sm font-semibold text-slate-950">
+                  {value}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </div>
+    </section>
+  );
+}

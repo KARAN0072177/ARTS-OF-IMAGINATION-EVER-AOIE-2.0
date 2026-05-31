@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { useState } from "react";
 
 interface RegisterResponse {
@@ -80,24 +82,27 @@ export default function RegisterForm() {
   };
 
   return (
-    <div className="w-full max-w-md rounded-xl border p-6 shadow-sm">
-      <h1 className="mb-2 text-3xl font-bold">
-        Create Account
-      </h1>
-
-      <p className="mb-6 text-sm text-gray-500">
-        Join AOIE and start showcasing
-        your artwork.
-      </p>
+    <div className="w-full max-w-md">
+      <div className="mb-8">
+        <p className="text-sm font-semibold uppercase tracking-[0.16em] text-cyan-700">
+          Get started
+        </p>
+        <h2 className="mt-3 text-3xl font-semibold text-slate-950">
+          Create your account
+        </h2>
+        <p className="mt-2 text-sm leading-6 text-slate-600">
+          Register as a standard user. Artist access can be enabled later.
+        </p>
+      </div>
 
       <form
         onSubmit={handleSubmit}
-        className="space-y-4"
+        className="space-y-5"
       >
         <div>
           <label
             htmlFor="username"
-            className="mb-1 block text-sm font-medium"
+            className="mb-2 block text-sm font-medium text-slate-700"
           >
             Username
           </label>
@@ -110,7 +115,7 @@ export default function RegisterForm() {
               setUsername(e.target.value)
             }
             required
-            className="w-full rounded-md border px-3 py-2 outline-none"
+            className="w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 text-slate-950 outline-none transition focus:border-cyan-600 focus:ring-4 focus:ring-cyan-100"
             placeholder="karanvani"
           />
         </div>
@@ -118,9 +123,9 @@ export default function RegisterForm() {
         <div>
           <label
             htmlFor="email"
-            className="mb-1 block text-sm font-medium"
+            className="mb-2 block text-sm font-medium text-slate-700"
           >
-            Email
+            Email address
           </label>
 
           <input
@@ -131,15 +136,15 @@ export default function RegisterForm() {
               setEmail(e.target.value)
             }
             required
-            className="w-full rounded-md border px-3 py-2 outline-none"
-            placeholder="example@gmail.com"
+            className="w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 text-slate-950 outline-none transition focus:border-cyan-600 focus:ring-4 focus:ring-cyan-100"
+            placeholder="you@example.com"
           />
         </div>
 
         <div>
           <label
             htmlFor="password"
-            className="mb-1 block text-sm font-medium"
+            className="mb-2 block text-sm font-medium text-slate-700"
           >
             Password
           </label>
@@ -152,15 +157,15 @@ export default function RegisterForm() {
               setPassword(e.target.value)
             }
             required
-            className="w-full rounded-md border px-3 py-2 outline-none"
-            placeholder="********"
+            className="w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 text-slate-950 outline-none transition focus:border-cyan-600 focus:ring-4 focus:ring-cyan-100"
+            placeholder="Create a password"
           />
         </div>
 
         <div>
           <label
             htmlFor="confirmPassword"
-            className="mb-1 block text-sm font-medium"
+            className="mb-2 block text-sm font-medium text-slate-700"
           >
             Confirm Password
           </label>
@@ -173,33 +178,43 @@ export default function RegisterForm() {
               setConfirmPassword(e.target.value)
             }
             required
-            className="w-full rounded-md border px-3 py-2 outline-none"
-            placeholder="********"
+            className="w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 text-slate-950 outline-none transition focus:border-cyan-600 focus:ring-4 focus:ring-cyan-100"
+            placeholder="Repeat your password"
           />
         </div>
 
         {error && (
-          <p className="text-sm text-red-500">
+          <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
             {error}
-          </p>
+          </div>
         )}
 
         {success && (
-          <p className="text-sm text-green-600">
+          <div className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
             {success}
-          </p>
+          </div>
         )}
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-md bg-black px-4 py-2 text-white disabled:opacity-50"
+          className="w-full rounded-md bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {loading
-            ? "Creating Account..."
-            : "Create Account"}
+            ? "Creating account..."
+            : "Create account"}
         </button>
       </form>
+
+      <p className="mt-6 text-center text-sm text-slate-600">
+        Already registered?{" "}
+        <Link
+          href="/login"
+          className="font-semibold text-cyan-700 hover:text-cyan-800"
+        >
+          Sign in
+        </Link>
+      </p>
     </div>
   );
 }

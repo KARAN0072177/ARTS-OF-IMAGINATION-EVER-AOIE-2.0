@@ -43,7 +43,7 @@ const UserSchema = new Schema<IUser>(
     role: {
       type: String,
       enum: ["artist", "user", "admin", "super-admin"],
-      default: "artist",
+      default: "user",
     },
 
     isVerified: {

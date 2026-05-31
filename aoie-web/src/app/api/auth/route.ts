@@ -59,6 +59,7 @@ export async function POST(req: Request) {
       username,
       email: email.toLowerCase(),
       password: hashedPassword,
+      role: "user",
 
       isVerified: false,
 
