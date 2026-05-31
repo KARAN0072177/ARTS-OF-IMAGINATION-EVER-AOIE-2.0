@@ -11,6 +11,7 @@ export default function RegisterForm() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const [loading, setLoading] = useState(false);
 
@@ -25,11 +26,16 @@ export default function RegisterForm() {
     setError("");
     setSuccess("");
 
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
     try {
       setLoading(true);
 
       const response = await fetch(
-        "/api/auth/register",
+        "/api/auth",
         {
           method: "POST",
           headers: {
@@ -61,6 +67,7 @@ export default function RegisterForm() {
       setUsername("");
       setEmail("");
       setPassword("");
+      setConfirmPassword("");
     } catch (error) {
       console.error(error);
 
@@ -143,6 +150,27 @@ export default function RegisterForm() {
             value={password}
             onChange={(e) =>
               setPassword(e.target.value)
+            }
+            required
+            className="w-full rounded-md border px-3 py-2 outline-none"
+            placeholder="********"
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="confirmPassword"
+            className="mb-1 block text-sm font-medium"
+          >
+            Confirm Password
+          </label>
+
+          <input
+            id="confirmPassword"
+            type="password"
+            value={confirmPassword}
+            onChange={(e) =>
+              setConfirmPassword(e.target.value)
             }
             required
             className="w-full rounded-md border px-3 py-2 outline-none"

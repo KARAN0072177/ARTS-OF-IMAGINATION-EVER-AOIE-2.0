@@ -14,7 +14,7 @@ export async function sendVerificationEmail({
   const verifyUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/verify-email?token=${token}`;
 
   await resend.emails.send({
-    from: "AOIE <onboarding@resend.dev>",
+    from: "AOIE <noreply@karanart.com>",
     to: email,
     subject: "Verify your AOIE account",
 
