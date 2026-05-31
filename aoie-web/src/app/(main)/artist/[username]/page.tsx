@@ -1,4 +1,5 @@
 import { getServerSession } from "next-auth";
+import { Types } from "mongoose";
 import { notFound } from "next/navigation";
 
 import { authOptions } from "@/lib/auth";
@@ -7,6 +8,7 @@ import { connectDB } from "@/lib/db";
 import User from "@/models/User";
 import Artwork from "@/models/Artwork";
 import Follow from "@/models/Follow";
+import Like from "@/models/Like";
 
 import ArtworkCard from "@/components/artwork/ArtworkCard";
 
@@ -19,12 +21,15 @@ interface ArtistPageProps {
 }
 
 interface ArtistArtwork {
-  _id: {
-    toString(): string;
-  };
+  _id: Types.ObjectId;
   title: string;
   imageUrl: string;
   category: string;
+  likesCount: number;
+}
+
+interface ArtworkLike {
+  artwork: Types.ObjectId;
 }
 
 export default async function ArtistPage({
@@ -59,6 +64,7 @@ export default async function ArtistPage({
     followersCount,
     followingCount,
     existingFollow,
+    likedArtworkIds,
   ] = await Promise.all([
     Follow.countDocuments({
       following: artist._id,
@@ -72,7 +78,25 @@ export default async function ArtistPage({
           following: artist._id,
         }).lean()
       : null,
+    session?.user?.id && artworks.length > 0
+      ? ((await Like.find({
+          user: session.user.id,
+          artwork: {
+            $in: artworks.map(
+              (artwork) => artwork._id
+            ),
+          },
+        })
+          .select("artwork")
+          .lean()) as unknown as ArtworkLike[])
+      : ([] as ArtworkLike[]),
   ]);
+
+  const likedSet = new Set(
+    likedArtworkIds.map((like) =>
+      like.artwork.toString()
+    )
+  );
 
   return (
     <section className="space-y-8">
@@ -163,6 +187,10 @@ export default async function ArtistPage({
                 title={artwork.title}
                 imageUrl={artwork.imageUrl}
                 category={artwork.category}
+                likesCount={artwork.likesCount}
+                isLiked={likedSet.has(
+                  artwork._id.toString()
+                )}
               />
             ))}
           </div>
