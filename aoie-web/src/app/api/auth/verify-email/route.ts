@@ -67,5 +67,5 @@ export async function GET(req: Request) {
     );
   }
 
-  redirect("/");
+  redirect("/login");
 }
