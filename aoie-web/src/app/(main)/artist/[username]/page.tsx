@@ -7,6 +7,8 @@ import Artwork from "@/models/Artwork";
 
 import ArtworkCard from "@/components/artwork/ArtworkCard";
 
+import FollowButton from "@/components/profile/FollowButton";
+
 interface ArtistPageProps {
   params: Promise<{
     username: string;
@@ -72,6 +74,10 @@ export default async function ArtistPage({
           <p className="mt-1 text-slate-500">
             @{artist.username}
           </p>
+
+          <div className="mt-4">
+            <FollowButton userId={artist._id.toString()} />
+          </div>
 
           {artist.artistProfile?.bio && (
             <p className="mt-4 max-w-3xl text-slate-700">
