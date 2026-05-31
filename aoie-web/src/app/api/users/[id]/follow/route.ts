@@ -133,3 +133,82 @@ export async function POST(
     );
   }
 }
+
+export async function GET(
+  req: Request,
+  { params }: RouteProps
+) {
+  try {
+    const { id } = await params;
+
+    await connectDB();
+
+    const targetUser =
+      await User.findById(id);
+
+    if (!targetUser) {
+      return Response.json(
+        {
+          success: false,
+          message: "User not found",
+        },
+        {
+          status: 404,
+        }
+      );
+    }
+
+    const session =
+      await getServerSession(
+        authOptions
+      );
+
+    const followersCount =
+      await Follow.countDocuments({
+        following: id,
+      });
+
+    const followingCount =
+      await Follow.countDocuments({
+        follower: id,
+      });
+
+    let following = false;
+
+    if (session?.user?.id) {
+      const existingFollow =
+        await Follow.findOne({
+          follower:
+            session.user.id,
+
+          following: id,
+        });
+
+      following =
+        !!existingFollow;
+    }
+
+    return Response.json({
+      success: true,
+
+      following,
+
+      followersCount,
+
+      followingCount,
+    });
+  } catch (error) {
+    console.error(error);
+
+    return Response.json(
+      {
+        success: false,
+        message:
+          "Internal Server Error",
+      },
+      {
+        status: 500,
+      }
+    );
+  }
+}
