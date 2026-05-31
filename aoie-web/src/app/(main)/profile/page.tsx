@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 import User from "@/models/User";
+import BecomeArtistButton from "@/components/profile/BecomeArtistButton";
 
 function formatDate(date: Date) {
   return new Intl.DateTimeFormat("en", {
@@ -71,10 +72,21 @@ export default async function ProfilePage() {
             <span className="rounded-full bg-cyan-50 px-3 py-1 text-xs font-semibold capitalize text-cyan-700">
               {user.role}
             </span>
+
             <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-              {user.isVerified ? "Verified email" : "Email pending"}
+              {user.isVerified
+                ? "Verified email"
+                : "Email pending"}
             </span>
           </div>
+
+          {user.role === "user" ? (
+            <BecomeArtistButton />
+          ) : (
+            <div className="mt-4 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
+              Artist account active
+            </div>
+          )}
         </aside>
 
         <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
