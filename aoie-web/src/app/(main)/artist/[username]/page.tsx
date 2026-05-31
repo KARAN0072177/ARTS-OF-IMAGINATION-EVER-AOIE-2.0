@@ -13,6 +13,15 @@ interface ArtistPageProps {
   }>;
 }
 
+interface ArtistArtwork {
+  _id: {
+    toString(): string;
+  };
+  title: string;
+  imageUrl: string;
+  category: string;
+}
+
 export default async function ArtistPage({
   params,
 }: ArtistPageProps) {
@@ -29,14 +38,14 @@ export default async function ArtistPage({
     notFound();
   }
 
-  const artworks = await Artwork.find({
+  const artworks = (await Artwork.find({
     artist: artist._id,
     isPublished: true,
   })
     .sort({
       createdAt: -1,
     })
-    .lean();
+    .lean()) as unknown as ArtistArtwork[];
 
   return (
     <section className="space-y-8">
@@ -111,7 +120,7 @@ export default async function ArtistPage({
           </div>
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {artworks.map((artwork: any) => (
+            {artworks.map((artwork) => (
               <ArtworkCard
                 key={artwork._id.toString()}
                 id={artwork._id.toString()}

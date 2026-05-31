@@ -11,6 +11,13 @@ interface ArtworkPageProps {
   }>;
 }
 
+interface PopulatedArtist {
+  username: string;
+  artistProfile?: {
+    displayName?: string;
+  };
+}
+
 function formatDate(date: Date) {
   return new Intl.DateTimeFormat("en", {
     day: "2-digit",
@@ -38,7 +45,7 @@ export default async function ArtworkPage({
   }
 
   const artist =
-    artwork.artist as any;
+    artwork.artist as unknown as PopulatedArtist;
 
   const displayName =
     artist.artistProfile

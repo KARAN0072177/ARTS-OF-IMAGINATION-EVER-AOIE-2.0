@@ -1,19 +1,61 @@
+import { getServerSession } from "next-auth";
+import { Types } from "mongoose";
+
+import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 
 import Artwork from "@/models/Artwork";
+import Like from "@/models/Like";
 
 import ArtworkCard from "@/components/artwork/ArtworkCard";
 
+interface FeedArtwork {
+  _id: Types.ObjectId;
+  title: string;
+  imageUrl: string;
+  category: string;
+  likesCount: number;
+}
+
+interface ArtworkLike {
+  artwork: Types.ObjectId;
+}
+
 export default async function FeedPage() {
+  const session =
+    await getServerSession(authOptions);
+
   await connectDB();
 
-  const artworks = await Artwork.find({
+  const artworks = (await Artwork.find({
     isPublished: true,
   })
     .sort({
       createdAt: -1,
     })
-    .lean();
+    .lean()) as unknown as FeedArtwork[];
+
+  const artworkIds = artworks.map(
+    (artwork) => artwork._id
+  );
+
+  const likedArtworkIds =
+    session?.user?.id && artworkIds.length > 0
+      ? ((await Like.find({
+          user: session.user.id,
+          artwork: {
+            $in: artworkIds,
+          },
+        })
+          .select("artwork")
+          .lean()) as unknown as ArtworkLike[])
+      : ([] as ArtworkLike[]);
+
+  const likedSet = new Set(
+    likedArtworkIds.map((like) =>
+      like.artwork.toString()
+    )
+  );
 
   return (
     <section>
@@ -43,13 +85,17 @@ export default async function FeedPage() {
         </div>
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {artworks.map((artwork: any) => (
+          {artworks.map((artwork) => (
             <ArtworkCard
               key={artwork._id.toString()}
               id={artwork._id.toString()}
               title={artwork.title}
               imageUrl={artwork.imageUrl}
               category={artwork.category}
+              likesCount={artwork.likesCount}
+              isLiked={likedSet.has(
+                artwork._id.toString()
+              )}
             />
           ))}
         </div>
