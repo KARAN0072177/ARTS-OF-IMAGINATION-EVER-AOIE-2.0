@@ -2,6 +2,8 @@
 
 import AuthSessionProvider from "@/providers/SessionProvider";
 
+import { SocketProvider } from "./SocketProvider";
+
 export default function Providers({
   children,
 }: {
@@ -9,7 +11,9 @@ export default function Providers({
 }) {
   return (
     <AuthSessionProvider>
-      {children}
+      <SocketProvider>
+        {children}
+      </SocketProvider>
     </AuthSessionProvider>
   );
 }
