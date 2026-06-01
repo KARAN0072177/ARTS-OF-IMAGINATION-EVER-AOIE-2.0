@@ -12,5 +12,6 @@ export const config = {
     "/profile/:path*",
     "/settings/:path*",
     "/upload/:path*",
+    "/saved/:path*",
   ],
 };
