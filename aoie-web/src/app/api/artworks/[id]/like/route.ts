@@ -9,6 +9,7 @@ import Like from "@/models/Like";
 import { createNotification }
   from "@/lib/createNotification";
 import { emitNotification } from "@/lib/emitNotification";
+import { recordInteraction } from "@/lib/recordInteraction";
 
 interface RouteParams {
   params: Promise<{
@@ -93,6 +94,12 @@ export async function POST(
     await Like.create({
       user: session.user.id,
       artwork: id,
+    });
+
+    await recordInteraction({
+      userId: session.user.id,
+      artworkId: id,
+      type: "like",
     });
 
     // like notification

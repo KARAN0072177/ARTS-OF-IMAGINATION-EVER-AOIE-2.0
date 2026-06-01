@@ -86,6 +86,17 @@ const ArtworkSchema =
     }
   );
 
+ArtworkSchema.index({
+  isPublished: 1,
+  createdAt: -1,
+});
+
+ArtworkSchema.index({
+  isPublished: 1,
+  category: 1,
+  createdAt: -1,
+});
+
 const Artwork: Model<IArtwork> =
   mongoose.models.Artwork ||
   mongoose.model<IArtwork>(

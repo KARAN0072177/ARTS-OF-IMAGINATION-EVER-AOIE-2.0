@@ -4,7 +4,12 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 
+import Artwork from "@/models/Artwork";
 import Notification from "@/models/Notification";
+import User from "@/models/User";
+
+void Artwork;
+void User;
 
 import NotificationItem, {
   NotificationListItem,

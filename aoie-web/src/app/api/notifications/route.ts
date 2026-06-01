@@ -3,7 +3,12 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 
+import Artwork from "@/models/Artwork";
 import Notification from "@/models/Notification";
+import User from "@/models/User";
+
+void Artwork;
+void User;
 
 export async function GET(req: Request) {
   try {

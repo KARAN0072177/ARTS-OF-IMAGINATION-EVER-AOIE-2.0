@@ -10,6 +10,7 @@ import CommentLike from "@/models/CommentLike";
 import { createNotification }
   from "@/lib/createNotification";
 import { emitNotification } from "@/lib/emitNotification";
+import { recordInteraction } from "@/lib/recordInteraction";
 
 interface RouteProps {
   params: Promise<{
@@ -306,6 +307,12 @@ export async function POST(
         parentComment:
           rootParentCommentId,
       });
+
+    await recordInteraction({
+      userId: session.user.id,
+      artworkId: id,
+      type: "comment",
+    });
 
     if (parentComment) {
       const notification =

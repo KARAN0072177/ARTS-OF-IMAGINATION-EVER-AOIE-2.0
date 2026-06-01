@@ -6,6 +6,7 @@ import { connectDB } from "@/lib/db";
 
 import Artwork from "@/models/Artwork";
 import Save from "@/models/Save";
+import { recordInteraction } from "@/lib/recordInteraction";
 
 interface RouteProps {
   params: Promise<{
@@ -178,6 +179,12 @@ export async function POST(
         session.user.id,
 
       artwork: id,
+    });
+
+    await recordInteraction({
+      userId: session.user.id,
+      artworkId: id,
+      type: "save",
     });
 
     return Response.json({
