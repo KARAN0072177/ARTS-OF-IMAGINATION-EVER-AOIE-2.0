@@ -7,6 +7,9 @@ import Artwork from "@/models/Artwork";
 import Comment from "@/models/Comment";
 import CommentLike from "@/models/CommentLike";
 
+import { createNotification }
+  from "@/lib/createNotification";
+
 interface RouteProps {
   params: Promise<{
     id: string;
@@ -62,19 +65,19 @@ export async function GET(
     const replies =
       commentIds.length > 0
         ? await Comment.find({
-            artwork: id,
-            parentComment: {
-              $in: commentIds,
-            },
+          artwork: id,
+          parentComment: {
+            $in: commentIds,
+          },
+        })
+          .populate(
+            "user",
+            "username role artistProfile"
+          )
+          .sort({
+            createdAt: 1,
           })
-            .populate(
-              "user",
-              "username role artistProfile"
-            )
-            .sort({
-              createdAt: 1,
-            })
-            .lean()
+          .lean()
         : [];
 
     const allCommentIds = [
@@ -84,15 +87,15 @@ export async function GET(
 
     const likedComments =
       session?.user?.id &&
-      allCommentIds.length > 0
+        allCommentIds.length > 0
         ? await CommentLike.find({
-            user: session.user.id,
-            comment: {
-              $in: allCommentIds,
-            },
-          })
-            .select("comment")
-            .lean()
+          user: session.user.id,
+          comment: {
+            $in: allCommentIds,
+          },
+        })
+          .select("comment")
+          .lean()
         : [];
 
     const likedSet = new Set(
@@ -104,22 +107,22 @@ export async function GET(
     const likeCounts =
       allCommentIds.length > 0
         ? await CommentLike.aggregate([
-            {
-              $match: {
-                comment: {
-                  $in: allCommentIds,
-                },
+          {
+            $match: {
+              comment: {
+                $in: allCommentIds,
               },
             },
-            {
-              $group: {
-                _id: "$comment",
-                count: {
-                  $sum: 1,
-                },
+          },
+          {
+            $group: {
+              _id: "$comment",
+              count: {
+                $sum: 1,
               },
             },
-          ])
+          },
+        ])
         : [];
 
     const likeCountMap = new Map(
@@ -292,6 +295,8 @@ export async function POST(
       parentComment?._id ||
       null;
 
+      // comment
+
     const comment =
       await Comment.create({
         artwork: id,
@@ -300,6 +305,40 @@ export async function POST(
         parentComment:
           rootParentCommentId,
       });
+
+    if (parentComment) {
+      await createNotification({
+        recipient:
+          parentComment.user.toString(),
+
+        sender:
+          session.user.id,
+
+        type: "comment_reply",
+
+        artwork: id,
+
+        comment:
+          comment._id.toString(),
+      });
+    }
+
+    // comment notification
+
+    await createNotification({
+      recipient:
+        artwork.artist.toString(),
+
+      sender:
+        session.user.id,
+
+      type: "artwork_comment",
+
+      artwork: id,
+
+      comment:
+        comment._id.toString(),
+    });
 
     const populatedComment =
       await Comment.findById(

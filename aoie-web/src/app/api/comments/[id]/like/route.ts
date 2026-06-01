@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
+import { createNotification } from "@/lib/createNotification";
 
 import Comment from "@/models/Comment";
 import CommentLike from "@/models/CommentLike";
@@ -86,6 +87,19 @@ export async function POST(
     await CommentLike.create({
       user: session.user.id,
       comment: id,
+    });
+
+    await createNotification({
+      recipient:
+        comment.user.toString(),
+
+      sender:
+        session.user.id,
+
+      type: "comment_like",
+
+      comment:
+        comment._id.toString(),
     });
 
     const likesCount =

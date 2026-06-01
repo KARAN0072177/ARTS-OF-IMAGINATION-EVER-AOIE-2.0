@@ -6,6 +6,9 @@ import { connectDB } from "@/lib/db";
 import Artwork from "@/models/Artwork";
 import Like from "@/models/Like";
 
+import { createNotification }
+  from "@/lib/createNotification";
+
 interface RouteParams {
   params: Promise<{
     id: string;
@@ -88,6 +91,20 @@ export async function POST(
     // Like
     await Like.create({
       user: session.user.id,
+      artwork: id,
+    });
+
+    // like notification
+
+    await createNotification({
+      recipient:
+        artwork.artist.toString(),
+
+      sender:
+        session.user.id,
+
+      type: "artwork_like",
+
       artwork: id,
     });
 

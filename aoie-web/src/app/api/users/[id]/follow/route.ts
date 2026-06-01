@@ -6,6 +6,9 @@ import { connectDB } from "@/lib/db";
 import User from "@/models/User";
 import Follow from "@/models/Follow";
 
+import { createNotification }
+  from "@/lib/createNotification";
+
 interface FollowListUser {
   _id: {
     toString(): string;
@@ -128,6 +131,16 @@ export async function POST(
       following: id,
     });
 
+    // Create notification of follow
+
+    await createNotification({
+      recipient: id,
+
+      sender: session.user.id,
+
+      type: "follow",
+    });
+
     const followersCount =
       await Follow.countDocuments(
         {
@@ -221,23 +234,23 @@ export async function GET(
       const followDocs =
         listType === "followers"
           ? await Follow.find({
-              following: id,
-            })
-              .populate(
-                "follower",
-                "username role artistProfile"
-              )
-              .sort({ createdAt: -1 })
-              .lean()
+            following: id,
+          })
+            .populate(
+              "follower",
+              "username role artistProfile"
+            )
+            .sort({ createdAt: -1 })
+            .lean()
           : await Follow.find({
-              follower: id,
-            })
-              .populate(
-                "following",
-                "username role artistProfile"
-              )
-              .sort({ createdAt: -1 })
-              .lean();
+            follower: id,
+          })
+            .populate(
+              "following",
+              "username role artistProfile"
+            )
+            .sort({ createdAt: -1 })
+            .lean();
 
       const users = (
         followDocs as unknown as PopulatedFollow[]
