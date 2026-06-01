@@ -16,7 +16,6 @@ interface FeedArtwork {
   imageUrl: string;
   category: string;
   likesCount: number;
-  createdAt: Date;
   artist?: {
     username?: string;
     artistProfile?: {
@@ -113,7 +112,7 @@ export default async function FeedPage({
 
   const artworks = (await Artwork.find(feedQuery)
     .select(
-      "title imageUrl category likesCount createdAt artist"
+      "title imageUrl category likesCount artist"
     )
     .populate(
       "artist",
@@ -149,29 +148,24 @@ export default async function FeedPage({
   );
 
   return (
-    <section>
-      <div className="mb-8 rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+    <section className="space-y-6">
+      <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-cyan-700">
-              Explore
-            </p>
-            <h1 className="mt-3 text-3xl font-semibold text-slate-950">
-              Artwork Feed
+            <h1 className="text-2xl font-semibold text-slate-950 sm:text-3xl">
+              {selectedCategory ||
+                "Artwork Feed"}
             </h1>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-              Discover fresh artwork from AOIE artists and filter by the styles you want to browse.
+            <p className="mt-2 text-sm text-slate-500">
+              {totalCount}{" "}
+              {totalCount === 1
+                ? "artwork"
+                : "artworks"}{" "}
+              available
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <div className="rounded-md bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-700">
-              {totalCount}{" "}
-              {totalCount === 1
-                ? "artwork"
-                : "artworks"}
-            </div>
-
             <Link
               href="/upload"
               className="rounded-md bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
@@ -181,7 +175,7 @@ export default async function FeedPage({
           </div>
         </div>
 
-        <div className="mt-6 flex gap-2 overflow-x-auto pb-1">
+        <div className="mt-5 flex gap-2 overflow-x-auto pb-1">
           <Link
             href={getFeedHref({})}
             className={`shrink-0 rounded-full px-3 py-1.5 text-sm font-semibold transition ${
@@ -234,7 +228,7 @@ export default async function FeedPage({
         </div>
       ) : (
         <>
-          <div className="mb-4 flex items-center justify-between gap-3 text-sm text-slate-500">
+          <div className="flex items-center justify-between gap-3 text-sm text-slate-500">
             <span>
               Showing {skip + 1}-
               {Math.min(
@@ -252,7 +246,7 @@ export default async function FeedPage({
             )}
           </div>
 
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="columns-2 gap-4 sm:columns-3 lg:columns-4 xl:columns-5">
             {artworks.map((artwork) => {
               const artworkId =
                 artwork._id.toString();
@@ -275,7 +269,6 @@ export default async function FeedPage({
                       ?.displayName ||
                     artistUsername
                   }
-                  createdAt={artwork.createdAt.toISOString()}
                   likesCount={artwork.likesCount}
                   isLiked={likedSet.has(
                     artworkId
@@ -286,7 +279,7 @@ export default async function FeedPage({
           </div>
 
           {totalPages > 1 && (
-            <div className="mt-8 flex items-center justify-center gap-3">
+            <div className="flex items-center justify-center gap-3 border-t border-slate-200 pt-6">
               {currentPage > 1 ? (
                 <Link
                   href={getFeedHref({
@@ -295,12 +288,12 @@ export default async function FeedPage({
                     page:
                       currentPage - 1,
                   })}
-                  className="rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                  className="rounded-full border border-slate-200 bg-white px-5 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
                 >
                   Previous
                 </Link>
               ) : (
-                <span className="rounded-md border border-slate-200 bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-400">
+                <span className="rounded-full border border-slate-200 bg-slate-100 px-5 py-2 text-sm font-semibold text-slate-400">
                   Previous
                 </span>
               )}
@@ -313,12 +306,12 @@ export default async function FeedPage({
                     page:
                       currentPage + 1,
                   })}
-                  className="rounded-md bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+                  className="rounded-full bg-slate-950 px-5 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
                 >
                   Next
                 </Link>
               ) : (
-                <span className="rounded-md bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-400">
+                <span className="rounded-full bg-slate-100 px-5 py-2 text-sm font-semibold text-slate-400">
                   Next
                 </span>
               )}
