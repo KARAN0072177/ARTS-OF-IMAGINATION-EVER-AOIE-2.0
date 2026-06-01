@@ -14,6 +14,8 @@ import CommentSection, {
   ArtworkComment,
 } from "@/components/comment/CommentSection";
 
+import SaveButton from "@/components/artwork/SaveButton";
+
 interface ArtworkPageProps {
   params: Promise<{
     id: string;
@@ -142,19 +144,19 @@ export default async function ArtworkPage({
   const replies =
     commentIds.length > 0
       ? ((await Comment.find({
-          artwork: artwork._id,
-          parentComment: {
-            $in: commentIds,
-          },
+        artwork: artwork._id,
+        parentComment: {
+          $in: commentIds,
+        },
+      })
+        .populate(
+          "user",
+          "username role artistProfile"
+        )
+        .sort({
+          createdAt: 1,
         })
-          .populate(
-            "user",
-            "username role artistProfile"
-          )
-          .sort({
-            createdAt: 1,
-          })
-          .lean()) as unknown as RawComment[])
+        .lean()) as unknown as RawComment[])
       : [];
 
   const allCommentIds = [
@@ -164,15 +166,15 @@ export default async function ArtworkPage({
 
   const likedComments =
     session?.user?.id &&
-    allCommentIds.length > 0
+      allCommentIds.length > 0
       ? ((await CommentLike.find({
-          user: session.user.id,
-          comment: {
-            $in: allCommentIds,
-          },
-        })
-          .select("comment")
-          .lean()) as unknown as Array<{
+        user: session.user.id,
+        comment: {
+          $in: allCommentIds,
+        },
+      })
+        .select("comment")
+        .lean()) as unknown as Array<{
           comment: Types.ObjectId;
         }>)
       : [];
@@ -186,25 +188,25 @@ export default async function ArtworkPage({
   const likeCounts =
     allCommentIds.length > 0
       ? ((await CommentLike.aggregate([
-          {
-            $match: {
-              comment: {
-                $in: allCommentIds,
-              },
+        {
+          $match: {
+            comment: {
+              $in: allCommentIds,
             },
           },
-          {
-            $group: {
-              _id: "$comment",
-              count: {
-                $sum: 1,
-              },
+        },
+        {
+          $group: {
+            _id: "$comment",
+            count: {
+              $sum: 1,
             },
           },
-        ])) as Array<{
-          _id: Types.ObjectId;
-          count: number;
-        }>)
+        },
+      ])) as Array<{
+        _id: Types.ObjectId;
+        count: number;
+      }>)
       : [];
 
   const likeCountMap = new Map(
@@ -324,6 +326,14 @@ export default async function ArtworkPage({
                 <dd className="font-medium">
                   {artwork.likesCount}
                 </dd>
+              </div>
+
+              <div className="flex gap-3">
+                <SaveButton
+                  artworkId={
+                    artwork._id.toString()
+                  }
+                />
               </div>
 
               <div className="flex justify-between">
