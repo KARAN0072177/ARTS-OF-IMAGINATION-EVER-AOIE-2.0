@@ -6,6 +6,7 @@ import Link from "next/link";
 import NotificationItem, {
   NotificationListItem,
 } from "./NotificationItem";
+import { useSocket } from "@/providers/SocketProvider";
 
 interface NotificationDropdownProps {
   onMarkAllRead?: () => void;
@@ -14,6 +15,8 @@ interface NotificationDropdownProps {
 export default function NotificationDropdown({
   onMarkAllRead,
 }: NotificationDropdownProps) {
+  const socket = useSocket();
+
   const [loading, setLoading] =
     useState(true);
 
@@ -56,6 +59,40 @@ export default function NotificationDropdown({
       isMounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    async function refreshNotifications() {
+      try {
+        const response =
+          await fetch(
+            "/api/notifications?limit=5"
+          );
+
+        const data =
+          await response.json();
+
+        if (data.success) {
+          setNotifications(
+            data.notifications
+          );
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    socket.on(
+      "notification:new",
+      refreshNotifications
+    );
+
+    return () => {
+      socket.off(
+        "notification:new",
+        refreshNotifications
+      );
+    };
+  }, [socket]);
 
   async function handleMarkAllRead() {
     try {

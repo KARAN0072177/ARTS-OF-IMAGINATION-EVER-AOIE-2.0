@@ -9,6 +9,7 @@ import CommentLike from "@/models/CommentLike";
 
 import { createNotification }
   from "@/lib/createNotification";
+import { emitNotification } from "@/lib/emitNotification";
 
 interface RouteProps {
   params: Promise<{
@@ -307,7 +308,8 @@ export async function POST(
       });
 
     if (parentComment) {
-      await createNotification({
+      const notification =
+        await createNotification({
         recipient:
           parentComment.user.toString(),
 
@@ -321,11 +323,28 @@ export async function POST(
         comment:
           comment._id.toString(),
       });
+
+      if (notification) {
+        await emitNotification({
+          recipientId:
+            parentComment.user.toString(),
+
+          notification: {
+            type: "comment_reply",
+            senderId:
+              session.user.id,
+            artworkId: id,
+            commentId:
+              comment._id.toString(),
+          },
+        });
+      }
     }
 
     // comment notification
 
-    await createNotification({
+    const notification =
+      await createNotification({
       recipient:
         artwork.artist.toString(),
 
@@ -339,6 +358,22 @@ export async function POST(
       comment:
         comment._id.toString(),
     });
+
+    if (notification) {
+      await emitNotification({
+        recipientId:
+          artwork.artist.toString(),
+
+        notification: {
+          type: "artwork_comment",
+          senderId:
+            session.user.id,
+          artworkId: id,
+          commentId:
+            comment._id.toString(),
+        },
+      });
+    }
 
     const populatedComment =
       await Comment.findById(

@@ -8,6 +8,7 @@ import Follow from "@/models/Follow";
 
 import { createNotification }
   from "@/lib/createNotification";
+import { emitNotification } from "@/lib/emitNotification";
 
 interface FollowListUser {
   _id: {
@@ -131,15 +132,28 @@ export async function POST(
       following: id,
     });
 
-    // Create notification of follow
+    const notification =
+      await createNotification({
+        recipient: id,
 
-    await createNotification({
-      recipient: id,
+        sender:
+          session.user.id,
 
-      sender: session.user.id,
+        type: "follow",
+      });
 
-      type: "follow",
-    });
+    if (notification) {
+      await emitNotification({
+        recipientId: id,
+
+        notification: {
+          type: "follow",
+
+          senderId:
+            session.user.id,
+        },
+      });
+    }
 
     const followersCount =
       await Follow.countDocuments(

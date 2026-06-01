@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 import { createNotification } from "@/lib/createNotification";
+import { emitNotification } from "@/lib/emitNotification";
 
 import Comment from "@/models/Comment";
 import CommentLike from "@/models/CommentLike";
@@ -89,7 +90,8 @@ export async function POST(
       comment: id,
     });
 
-    await createNotification({
+    const notification =
+      await createNotification({
       recipient:
         comment.user.toString(),
 
@@ -101,6 +103,21 @@ export async function POST(
       comment:
         comment._id.toString(),
     });
+
+    if (notification) {
+      await emitNotification({
+        recipientId:
+          comment.user.toString(),
+
+        notification: {
+          type: "comment_like",
+          senderId:
+            session.user.id,
+          commentId:
+            comment._id.toString(),
+        },
+      });
+    }
 
     const likesCount =
       await CommentLike.countDocuments({

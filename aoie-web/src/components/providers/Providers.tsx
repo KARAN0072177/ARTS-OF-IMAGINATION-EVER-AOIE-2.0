@@ -3,10 +3,16 @@
 import { SessionProvider } from "next-auth/react";
 import React from "react";
 
+import { SocketProvider } from "@/providers/SocketProvider";
+
 interface ProvidersProps {
   children: React.ReactNode;
 }
 
 export default function Providers({ children }: ProvidersProps) {
-  return <SessionProvider>{children}</SessionProvider>;
+  return (
+    <SessionProvider>
+      <SocketProvider>{children}</SocketProvider>
+    </SessionProvider>
+  );
 }

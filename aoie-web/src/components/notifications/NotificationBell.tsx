@@ -5,8 +5,11 @@ import { Bell } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import NotificationDropdown from "./NotificationDropdown";
+import { useSocket } from "@/providers/SocketProvider";
 
 export default function NotificationBell() {
+  const socket = useSocket();
+
   const [open, setOpen] =
     useState(false);
 
@@ -42,6 +45,40 @@ export default function NotificationBell() {
       isMounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    async function refreshUnreadCount() {
+      try {
+        const response =
+          await fetch(
+            "/api/notifications"
+          );
+
+        const data =
+          await response.json();
+
+        if (data.success) {
+          setUnreadCount(
+            data.unreadCount
+          );
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    socket.on(
+      "notification:new",
+      refreshUnreadCount
+    );
+
+    return () => {
+      socket.off(
+        "notification:new",
+        refreshUnreadCount
+      );
+    };
+  }, [socket]);
 
   return (
     <div className="relative">

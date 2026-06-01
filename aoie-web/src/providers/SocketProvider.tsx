@@ -43,11 +43,7 @@ export function SocketProvider({
       session.user.id
     );
 
-    return () => {
-      socket.off(
-        "notification:new"
-      );
-    };
+    return undefined;
   }, [session]);
 
   return (

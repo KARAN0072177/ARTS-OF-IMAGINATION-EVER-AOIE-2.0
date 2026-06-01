@@ -8,6 +8,7 @@ import Like from "@/models/Like";
 
 import { createNotification }
   from "@/lib/createNotification";
+import { emitNotification } from "@/lib/emitNotification";
 
 interface RouteParams {
   params: Promise<{
@@ -96,7 +97,8 @@ export async function POST(
 
     // like notification
 
-    await createNotification({
+    const notification =
+      await createNotification({
       recipient:
         artwork.artist.toString(),
 
@@ -107,6 +109,20 @@ export async function POST(
 
       artwork: id,
     });
+
+    if (notification) {
+      await emitNotification({
+        recipientId:
+          artwork.artist.toString(),
+
+        notification: {
+          type: "artwork_like",
+          senderId:
+            session.user.id,
+          artworkId: id,
+        },
+      });
+    }
 
     const updatedArtwork =
       await Artwork.findByIdAndUpdate(
