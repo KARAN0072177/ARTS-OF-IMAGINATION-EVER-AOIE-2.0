@@ -1,46 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 interface SaveButtonProps {
   artworkId: string;
+  initialSaved: boolean;
 }
 
 export default function SaveButton({
   artworkId,
+  initialSaved,
 }: SaveButtonProps) {
   const [saved, setSaved] =
-    useState(false);
-
-  const [loading, setLoading] =
-    useState(true);
+    useState(initialSaved);
 
   const [submitting, setSubmitting] =
     useState(false);
-
-  useEffect(() => {
-    fetchSaveStatus();
-  }, [artworkId]);
-
-  async function fetchSaveStatus() {
-    try {
-      const response =
-        await fetch(
-          `/api/artworks/${artworkId}/save`
-        );
-
-      const data =
-        await response.json();
-
-      if (data.success) {
-        setSaved(data.saved);
-      }
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  }
 
   async function handleSave() {
     try {
@@ -67,17 +42,6 @@ export default function SaveButton({
     } finally {
       setSubmitting(false);
     }
-  }
-
-  if (loading) {
-    return (
-      <button
-        disabled
-        className="rounded-md border px-4 py-2 text-sm"
-      >
-        Loading...
-      </button>
-    );
   }
 
   return (

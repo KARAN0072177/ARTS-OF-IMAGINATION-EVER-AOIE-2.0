@@ -1,4 +1,5 @@
 import { getServerSession } from "next-auth";
+import { Types } from "mongoose";
 
 import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
@@ -26,6 +27,18 @@ export async function GET(
       );
 
     const { id } = await params;
+
+    if (!Types.ObjectId.isValid(id)) {
+      return Response.json(
+        {
+          success: false,
+          message: "Invalid artwork id",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
 
     await connectDB();
 
@@ -107,6 +120,18 @@ export async function POST(
     }
 
     const { id } = await params;
+
+    if (!Types.ObjectId.isValid(id)) {
+      return Response.json(
+        {
+          success: false,
+          message: "Invalid artwork id",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
 
     await connectDB();
 

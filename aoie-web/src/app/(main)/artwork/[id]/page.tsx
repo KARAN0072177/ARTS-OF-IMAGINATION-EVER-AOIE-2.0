@@ -9,6 +9,7 @@ import { connectDB } from "@/lib/db";
 import Artwork from "@/models/Artwork";
 import Comment from "@/models/Comment";
 import CommentLike from "@/models/CommentLike";
+import Save from "@/models/Save";
 
 import CommentSection, {
   ArtworkComment,
@@ -100,6 +101,10 @@ export default async function ArtworkPage({
 }: ArtworkPageProps) {
   const { id } = await params;
 
+  if (!Types.ObjectId.isValid(id)) {
+    notFound();
+  }
+
   const session =
     await getServerSession(authOptions);
 
@@ -123,6 +128,14 @@ export default async function ArtworkPage({
     artist.artistProfile
       ?.displayName ||
     artist.username;
+
+  const existingSave =
+    session?.user?.id
+      ? await Save.findOne({
+          user: session.user.id,
+          artwork: artwork._id,
+        }).lean()
+      : null;
 
   const comments = (await Comment.find({
     artwork: artwork._id,
@@ -333,6 +346,7 @@ export default async function ArtworkPage({
                   artworkId={
                     artwork._id.toString()
                   }
+                  initialSaved={!!existingSave}
                 />
               </div>
 

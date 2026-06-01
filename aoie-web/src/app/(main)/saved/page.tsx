@@ -1,5 +1,6 @@
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
+import { Types } from "mongoose";
 
 import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
@@ -7,6 +8,19 @@ import { connectDB } from "@/lib/db";
 import Save from "@/models/Save";
 
 import ArtworkCard from "@/components/artwork/ArtworkCard";
+
+interface SavedArtwork {
+  _id: Types.ObjectId;
+  title: string;
+  imageUrl: string;
+  category: string;
+  likesCount: number;
+}
+
+interface SavedItem {
+  _id: Types.ObjectId;
+  artwork: SavedArtwork | null;
+}
 
 export default async function SavedPage() {
   const session =
@@ -20,15 +34,23 @@ export default async function SavedPage() {
 
   await connectDB();
 
-  const savedArtworks =
-    await Save.find({
+  const savedArtworks = (await Save.find({
       user: session.user.id,
     })
       .populate("artwork")
       .sort({
         createdAt: -1,
       })
-      .lean();
+      .lean()) as unknown as SavedItem[];
+
+  const savedArtworkItems =
+    savedArtworks.filter(
+      (
+        saved
+      ): saved is SavedItem & {
+        artwork: SavedArtwork;
+      } => Boolean(saved.artwork)
+    );
 
   return (
     <section>
@@ -42,13 +64,13 @@ export default async function SavedPage() {
         </h1>
 
         <p className="mt-3 text-slate-600">
-          Artworks you've saved for
+          Artworks you&apos;ve saved for
           inspiration and future
           reference.
         </p>
       </div>
 
-      {savedArtworks.length === 0 ? (
+      {savedArtworkItems.length === 0 ? (
         <div className="rounded-xl border border-dashed border-slate-300 p-12 text-center">
           <h2 className="text-lg font-semibold text-slate-900">
             No saved artworks yet
@@ -61,8 +83,8 @@ export default async function SavedPage() {
         </div>
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {savedArtworks.map(
-            (saved: any) => (
+          {savedArtworkItems.map(
+            (saved) => (
               <ArtworkCard
                 key={
                   saved.artwork._id.toString()
@@ -76,6 +98,9 @@ export default async function SavedPage() {
                 }
                 category={
                   saved.artwork.category
+                }
+                likesCount={
+                  saved.artwork.likesCount
                 }
               />
             )
