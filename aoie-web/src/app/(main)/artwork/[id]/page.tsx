@@ -5,6 +5,8 @@ import { connectDB } from "@/lib/db";
 
 import Artwork from "@/models/Artwork";
 
+import CommentSection from "@/components/comment/CommentSection";
+
 interface ArtworkPageProps {
   params: Promise<{
     id: string;
@@ -164,6 +166,12 @@ export default async function ArtworkPage({
             </dl>
           </div>
         </aside>
+
+        {/* comment section */}
+
+        <CommentSection
+          artworkId={artwork._id.toString()}
+        />
       </div>
     </section>
   );
