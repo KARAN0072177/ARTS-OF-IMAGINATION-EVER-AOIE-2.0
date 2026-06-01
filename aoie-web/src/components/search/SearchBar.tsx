@@ -1,13 +1,23 @@
 "use client";
 
+import {
+  Search,
+  X,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export default function SearchBar() {
+interface SearchBarProps {
+  initialQuery?: string;
+}
+
+export default function SearchBar({
+  initialQuery = "",
+}: SearchBarProps) {
   const router = useRouter();
 
   const [query, setQuery] =
-    useState("");
+    useState(initialQuery);
 
   function handleSubmit(
     e: React.FormEvent
@@ -17,7 +27,10 @@ export default function SearchBar() {
     const value =
       query.trim();
 
-    if (!value) return;
+    if (!value) {
+      router.push("/search");
+      return;
+    }
 
     router.push(
       `/search?q=${encodeURIComponent(
@@ -26,27 +39,49 @@ export default function SearchBar() {
     );
   }
 
+  function handleClear() {
+    setQuery("");
+    router.push("/search");
+  }
+
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex gap-2"
+      className="flex w-full flex-col gap-3 sm:flex-row"
     >
-      <input
-        type="text"
-        value={query}
-        onChange={(e) =>
-          setQuery(
-            e.target.value
-          )
-        }
-        placeholder="Search artists, artworks..."
-        className="w-full rounded-md border border-slate-300 px-4 py-2"
-      />
+      <div className="relative flex-1">
+        <Search
+          size={18}
+          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+        />
+
+        <input
+          type="search"
+          value={query}
+          onChange={(e) =>
+            setQuery(e.target.value)
+          }
+          placeholder="Search artists, artworks, categories..."
+          className="w-full rounded-lg border border-slate-300 bg-white py-3 pl-10 pr-10 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-cyan-600 focus:ring-4 focus:ring-cyan-100"
+        />
+
+        {query && (
+          <button
+            type="button"
+            onClick={handleClear}
+            aria-label="Clear search"
+            className="absolute right-2 top-1/2 rounded-md p-1.5 text-slate-400 transition -translate-y-1/2 hover:bg-slate-100 hover:text-slate-700"
+          >
+            <X size={16} />
+          </button>
+        )}
+      </div>
 
       <button
         type="submit"
-        className="rounded-md bg-slate-950 px-4 py-2 text-white"
+        className="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
       >
+        <Search size={16} />
         Search
       </button>
     </form>

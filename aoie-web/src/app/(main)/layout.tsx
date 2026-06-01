@@ -30,6 +30,12 @@ export default function MainLayout({
               Profile
             </Link>
             <Link
+              href="/search"
+              className="rounded-md px-3 py-2 font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-950"
+            >
+              Search
+            </Link>
+            <Link
               href="/login"
               className="rounded-md bg-slate-950 px-3 py-2 font-semibold text-white transition hover:bg-slate-800"
             >
