@@ -5,7 +5,7 @@ import { connectDB } from "@/lib/db";
 
 import Notification from "@/models/Notification";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     const session =
       await getServerSession(authOptions);
@@ -24,6 +24,22 @@ export async function GET() {
 
     await connectDB();
 
+    const { searchParams } =
+      new URL(req.url);
+
+    const requestedLimit = Number(
+      searchParams.get("limit")
+    );
+
+    const limit = Number.isFinite(
+      requestedLimit
+    )
+      ? Math.min(
+          Math.max(requestedLimit, 1),
+          50
+        )
+      : 50;
+
     const notifications =
       await Notification.find({
         recipient:
@@ -40,7 +56,7 @@ export async function GET() {
         .sort({
           createdAt: -1,
         })
-        .limit(50)
+        .limit(limit)
         .lean();
 
     const unreadCount =
