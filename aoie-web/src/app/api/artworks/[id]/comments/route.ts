@@ -5,6 +5,7 @@ import { connectDB } from "@/lib/db";
 
 import Artwork from "@/models/Artwork";
 import Comment from "@/models/Comment";
+import CommentLike from "@/models/CommentLike";
 
 interface RouteProps {
   params: Promise<{
@@ -12,15 +13,16 @@ interface RouteProps {
   }>;
 }
 
-/**
- * GET COMMENTS
- */
 export async function GET(
   req: Request,
   { params }: RouteProps
 ) {
   try {
     const { id } = await params;
+    const session =
+      await getServerSession(
+        authOptions
+      );
 
     await connectDB();
 
@@ -53,9 +55,122 @@ export async function GET(
         })
         .lean();
 
+    const commentIds = comments.map(
+      (comment) => comment._id
+    );
+
+    const replies =
+      commentIds.length > 0
+        ? await Comment.find({
+            artwork: id,
+            parentComment: {
+              $in: commentIds,
+            },
+          })
+            .populate(
+              "user",
+              "username role artistProfile"
+            )
+            .sort({
+              createdAt: 1,
+            })
+            .lean()
+        : [];
+
+    const allCommentIds = [
+      ...commentIds,
+      ...replies.map((reply) => reply._id),
+    ];
+
+    const likedComments =
+      session?.user?.id &&
+      allCommentIds.length > 0
+        ? await CommentLike.find({
+            user: session.user.id,
+            comment: {
+              $in: allCommentIds,
+            },
+          })
+            .select("comment")
+            .lean()
+        : [];
+
+    const likedSet = new Set(
+      likedComments.map((like) =>
+        like.comment.toString()
+      )
+    );
+
+    const likeCounts =
+      allCommentIds.length > 0
+        ? await CommentLike.aggregate([
+            {
+              $match: {
+                comment: {
+                  $in: allCommentIds,
+                },
+              },
+            },
+            {
+              $group: {
+                _id: "$comment",
+                count: {
+                  $sum: 1,
+                },
+              },
+            },
+          ])
+        : [];
+
+    const likeCountMap = new Map(
+      likeCounts.map((item) => [
+        item._id.toString(),
+        item.count,
+      ])
+    );
+
+    const commentsWithReplies =
+      comments.map((comment) => {
+        const commentId =
+          comment._id.toString();
+        const commentReplies =
+          replies.filter(
+            (reply) =>
+              reply.parentComment?.toString() ===
+              comment._id.toString()
+          );
+
+        return {
+          ...comment,
+          likesCount:
+            likeCountMap.get(commentId) ??
+            comment.likesCount ?? 0,
+          isLiked: likedSet.has(
+            commentId
+          ),
+          replies: commentReplies.map(
+            (reply) => {
+              const replyId =
+                reply._id.toString();
+
+              return {
+                ...reply,
+                likesCount:
+                  likeCountMap.get(replyId) ??
+                  reply.likesCount ??
+                  0,
+                isLiked: likedSet.has(
+                  replyId
+                ),
+              };
+            }
+          ),
+        };
+      });
+
     return Response.json({
       success: true,
-      comments,
+      comments: commentsWithReplies,
     });
   } catch (error) {
     console.error(error);
@@ -73,9 +188,6 @@ export async function GET(
   }
 }
 
-/**
- * CREATE COMMENT
- */
 export async function POST(
   req: Request,
   { params }: RouteProps
@@ -123,6 +235,9 @@ export async function POST(
     const content =
       body.content?.trim();
 
+    const parentCommentId =
+      body.parentCommentId;
+
     if (!content) {
       return Response.json(
         {
@@ -149,16 +264,41 @@ export async function POST(
       );
     }
 
+    let parentComment = null;
+
+    if (parentCommentId) {
+      parentComment =
+        await Comment.findOne({
+          _id: parentCommentId,
+          artwork: id,
+        });
+
+      if (!parentComment) {
+        return Response.json(
+          {
+            success: false,
+            message:
+              "Parent comment not found",
+          },
+          {
+            status: 404,
+          }
+        );
+      }
+    }
+
+    const rootParentCommentId =
+      parentComment?.parentComment ||
+      parentComment?._id ||
+      null;
+
     const comment =
       await Comment.create({
         artwork: id,
-
-        user:
-          session.user.id,
-
+        user: session.user.id,
         content,
-
-        parentComment: null,
+        parentComment:
+          rootParentCommentId,
       });
 
     const populatedComment =
@@ -174,9 +314,12 @@ export async function POST(
     return Response.json(
       {
         success: true,
-
-        comment:
-          populatedComment,
+        comment: {
+          ...populatedComment,
+          likesCount: 0,
+          isLiked: false,
+          replies: [],
+        },
       },
       {
         status: 201,

@@ -1,11 +1,18 @@
 import Link from "next/link";
+import { Types } from "mongoose";
+import { getServerSession } from "next-auth";
 import { notFound } from "next/navigation";
 
+import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 
 import Artwork from "@/models/Artwork";
+import Comment from "@/models/Comment";
+import CommentLike from "@/models/CommentLike";
 
-import CommentSection from "@/components/comment/CommentSection";
+import CommentSection, {
+  ArtworkComment,
+} from "@/components/comment/CommentSection";
 
 interface ArtworkPageProps {
   params: Promise<{
@@ -17,6 +24,64 @@ interface PopulatedArtist {
   username: string;
   artistProfile?: {
     displayName?: string;
+  };
+}
+
+interface RawComment {
+  _id: Types.ObjectId;
+  content: string;
+  likesCount?: number;
+  createdAt: Date;
+  parentComment?: {
+    toString(): string;
+  } | null;
+  user: {
+    _id: {
+      toString(): string;
+    };
+    username: string;
+    role?: string;
+    artistProfile?: {
+      displayName?: string;
+    };
+  };
+}
+
+function serializeComment(
+  comment: RawComment,
+  replies: RawComment[] = [],
+  likedSet = new Set<string>(),
+  likeCountMap = new Map<string, number>()
+): ArtworkComment {
+  const commentId = comment._id.toString();
+
+  return {
+    _id: commentId,
+    content: comment.content,
+    likesCount:
+      likeCountMap.get(commentId) ??
+      comment.likesCount ??
+      0,
+    isLiked: likedSet.has(commentId),
+    createdAt: comment.createdAt.toISOString(),
+    parentComment:
+      comment.parentComment?.toString() ||
+      null,
+    user: {
+      _id: comment.user._id.toString(),
+      username: comment.user.username,
+      role: comment.user.role,
+      artistProfile:
+        comment.user.artistProfile,
+    },
+    replies: replies.map((reply) =>
+      serializeComment(
+        reply,
+        [],
+        likedSet,
+        likeCountMap
+      )
+    ),
   };
 }
 
@@ -32,6 +97,9 @@ export default async function ArtworkPage({
   params,
 }: ArtworkPageProps) {
   const { id } = await params;
+
+  const session =
+    await getServerSession(authOptions);
 
   await connectDB();
 
@@ -53,6 +121,112 @@ export default async function ArtworkPage({
     artist.artistProfile
       ?.displayName ||
     artist.username;
+
+  const comments = (await Comment.find({
+    artwork: artwork._id,
+    parentComment: null,
+  })
+    .populate(
+      "user",
+      "username role artistProfile"
+    )
+    .sort({
+      createdAt: -1,
+    })
+    .lean()) as unknown as RawComment[];
+
+  const commentIds = comments.map(
+    (comment) => comment._id
+  );
+
+  const replies =
+    commentIds.length > 0
+      ? ((await Comment.find({
+          artwork: artwork._id,
+          parentComment: {
+            $in: commentIds,
+          },
+        })
+          .populate(
+            "user",
+            "username role artistProfile"
+          )
+          .sort({
+            createdAt: 1,
+          })
+          .lean()) as unknown as RawComment[])
+      : [];
+
+  const allCommentIds = [
+    ...commentIds,
+    ...replies.map((reply) => reply._id),
+  ];
+
+  const likedComments =
+    session?.user?.id &&
+    allCommentIds.length > 0
+      ? ((await CommentLike.find({
+          user: session.user.id,
+          comment: {
+            $in: allCommentIds,
+          },
+        })
+          .select("comment")
+          .lean()) as unknown as Array<{
+          comment: Types.ObjectId;
+        }>)
+      : [];
+
+  const likedSet = new Set(
+    likedComments.map((like) =>
+      like.comment.toString()
+    )
+  );
+
+  const likeCounts =
+    allCommentIds.length > 0
+      ? ((await CommentLike.aggregate([
+          {
+            $match: {
+              comment: {
+                $in: allCommentIds,
+              },
+            },
+          },
+          {
+            $group: {
+              _id: "$comment",
+              count: {
+                $sum: 1,
+              },
+            },
+          },
+        ])) as Array<{
+          _id: Types.ObjectId;
+          count: number;
+        }>)
+      : [];
+
+  const likeCountMap = new Map(
+    likeCounts.map((item) => [
+      item._id.toString(),
+      item.count,
+    ])
+  );
+
+  const commentsWithReplies =
+    comments.map((comment) =>
+      serializeComment(
+        comment,
+        replies.filter(
+          (reply) =>
+            reply.parentComment?.toString() ===
+            comment._id.toString()
+        ),
+        likedSet,
+        likeCountMap
+      )
+    );
 
   return (
     <section className="mx-auto max-w-7xl">
@@ -171,6 +345,9 @@ export default async function ArtworkPage({
 
         <CommentSection
           artworkId={artwork._id.toString()}
+          initialComments={
+            commentsWithReplies
+          }
         />
       </div>
     </section>

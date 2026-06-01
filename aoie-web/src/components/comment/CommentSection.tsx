@@ -1,171 +1,556 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {
+  Heart,
+  MessageCircle,
+  Send,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { FormEvent, useState } from "react";
 
 interface CommentUser {
   _id: string;
   username: string;
+  role?: string;
+  artistProfile?: {
+    displayName?: string;
+  };
 }
 
-interface Comment {
+export interface ArtworkComment {
   _id: string;
   content: string;
+  likesCount: number;
+  isLiked: boolean;
   createdAt: string;
+  parentComment?: string | null;
   user: CommentUser;
+  replies?: ArtworkComment[];
 }
 
 interface CommentSectionProps {
   artworkId: string;
+  initialComments: ArtworkComment[];
+}
+
+function formatTime(date: string) {
+  return new Intl.DateTimeFormat("en", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(date));
+}
+
+function getDisplayName(user: CommentUser) {
+  return (
+    user.artistProfile?.displayName ||
+    user.username
+  );
+}
+
+function getTotalCommentCount(
+  comments: ArtworkComment[]
+) {
+  return comments.reduce(
+    (total, comment) =>
+      total +
+      1 +
+      (comment.replies?.length || 0),
+    0
+  );
+}
+
+function normalizeComments(
+  comments: ArtworkComment[]
+): ArtworkComment[] {
+  return comments.map((comment) => ({
+    ...comment,
+    likesCount: comment.likesCount || 0,
+    isLiked: Boolean(comment.isLiked),
+    replies: normalizeComments(
+      comment.replies || []
+    ),
+  }));
 }
 
 export default function CommentSection({
   artworkId,
+  initialComments,
 }: CommentSectionProps) {
-  const [comments, setComments] =
-    useState<Comment[]>([]);
+  const router = useRouter();
 
+  const [comments, setComments] =
+    useState(() =>
+      normalizeComments(initialComments)
+    );
   const [content, setContent] =
     useState("");
+  const [replyContent, setReplyContent] =
+    useState("");
+  const [activeReplyId, setActiveReplyId] =
+    useState<string | null>(null);
+  const [submittingTarget, setSubmittingTarget] =
+    useState<string | null>(null);
+  const [error, setError] = useState("");
 
-  const [loading, setLoading] =
-    useState(false);
+  const totalCommentCount =
+    getTotalCommentCount(comments);
 
-  async function fetchComments() {
+  function updateCommentLikeState(
+    commentId: string,
+    liked: boolean,
+    likesCount: number
+  ) {
+    setComments((currentComments) =>
+      currentComments.map((comment) => {
+        if (comment._id === commentId) {
+          return {
+            ...comment,
+            isLiked: liked,
+            likesCount,
+          };
+        }
+
+        return {
+          ...comment,
+          replies:
+            comment.replies?.map((reply) =>
+              reply._id === commentId
+                ? {
+                    ...reply,
+                    isLiked: liked,
+                    likesCount,
+                  }
+                : reply
+            ) || [],
+        };
+      })
+    );
+  }
+
+  async function handleLikeComment(
+    comment: ArtworkComment
+  ) {
+    const previousLiked =
+      comment.isLiked;
+    const previousLikesCount =
+      comment.likesCount;
+    const nextLiked = !previousLiked;
+    const nextLikesCount =
+      previousLiked
+        ? Math.max(
+            0,
+            previousLikesCount - 1
+          )
+        : previousLikesCount + 1;
+
+    updateCommentLikeState(
+      comment._id,
+      nextLiked,
+      nextLikesCount
+    );
+
     try {
-      const response =
-        await fetch(
-          `/api/artworks/${artworkId}/comments`
-        );
+      const response = await fetch(
+        `/api/comments/${comment._id}/like`,
+        {
+          method: "POST",
+        }
+      );
 
-      const data =
-        await response.json();
-
-      if (data.success) {
-        setComments(data.comments);
+      if (response.status === 401) {
+        router.push("/login");
+        return;
       }
-    } catch (error) {
-      console.error(error);
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(
+          data.message ||
+            "Unable to update like"
+        );
+      }
+
+      updateCommentLikeState(
+        comment._id,
+        data.liked,
+        data.likesCount
+      );
+    } catch {
+      updateCommentLikeState(
+        comment._id,
+        previousLiked,
+        previousLikesCount
+      );
     }
   }
 
-  useEffect(() => {
-    fetchComments();
-  }, [artworkId]);
-
-  async function handleSubmit(
-    e: React.FormEvent
+  async function submitComment(
+    text: string,
+    parentCommentId?: string
   ) {
-    e.preventDefault();
+    const trimmedContent = text.trim();
 
-    if (!content.trim()) {
+    if (!trimmedContent) {
       return;
     }
 
+    setError("");
+    setSubmittingTarget(
+      parentCommentId || "comment"
+    );
+
     try {
-      setLoading(true);
+      const response = await fetch(
+        `/api/artworks/${artworkId}/comments`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            content: trimmedContent,
+            parentCommentId,
+          }),
+        }
+      );
 
-      const response =
-        await fetch(
-          `/api/artworks/${artworkId}/comments`,
-          {
-            method: "POST",
+      if (response.status === 401) {
+        router.push("/login");
+        return;
+      }
 
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
+      const data = await response.json();
 
-            body: JSON.stringify({
-              content,
-            }),
-          }
-        );
-
-      const data =
-        await response.json();
-
-      if (!response.ok) {
+      if (!response.ok || !data.success) {
         throw new Error(
-          data.message
+          data.message ||
+            "Unable to post comment"
         );
       }
 
-      setComments((prev) => [
-        data.comment,
-        ...prev,
-      ]);
+      const newComment =
+        data.comment as ArtworkComment;
 
+      if (parentCommentId) {
+        setComments((currentComments) =>
+          currentComments.map((comment) =>
+            comment._id === parentCommentId
+              ? {
+                  ...comment,
+                  replies: [
+                    ...(comment.replies || []),
+                    newComment,
+                  ],
+                }
+              : comment
+          )
+        );
+
+        setReplyContent("");
+        setActiveReplyId(null);
+        return;
+      }
+
+      setComments((currentComments) => [
+        {
+          ...newComment,
+          replies: [],
+        },
+        ...currentComments,
+      ]);
       setContent("");
-    } catch (error) {
-      console.error(error);
+    } catch (submitError) {
+      setError(
+        submitError instanceof Error
+          ? submitError.message
+          : "Unable to post comment"
+      );
     } finally {
-      setLoading(false);
+      setSubmittingTarget(null);
     }
   }
 
+  function handleCommentSubmit(
+    event: FormEvent
+  ) {
+    event.preventDefault();
+    submitComment(content);
+  }
+
+  function handleReplySubmit(
+    event: FormEvent,
+    commentId: string
+  ) {
+    event.preventDefault();
+    submitComment(replyContent, commentId);
+  }
+
   return (
-    <section className="mt-12">
-      <h2 className="mb-6 text-2xl font-bold">
-        Comments
-      </h2>
-
-      <form
-        onSubmit={handleSubmit}
-        className="mb-8"
-      >
-        <textarea
-          value={content}
-          onChange={(e) =>
-            setContent(e.target.value)
-          }
-          placeholder="Write a comment..."
-          rows={4}
-          className="w-full rounded-lg border border-slate-300 p-4"
-        />
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="mt-3 rounded-md bg-slate-950 px-5 py-2 text-white"
-        >
-          {loading
-            ? "Posting..."
-            : "Post Comment"}
-        </button>
-      </form>
-
-      <div className="space-y-4">
-        {comments.length === 0 ? (
-          <div className="rounded-lg border border-dashed p-6 text-center text-slate-500">
-            No comments yet.
+    <section className="lg:col-span-2">
+      <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-semibold text-slate-950">
+              Comments
+            </h2>
+            <p className="mt-1 text-sm text-slate-500">
+              Share feedback or reply to other viewers.
+            </p>
           </div>
-        ) : (
-          comments.map(
-            (comment) => (
-              <div
+
+          <div className="flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1.5 text-sm font-semibold text-slate-700">
+            <MessageCircle size={16} />
+            {totalCommentCount}
+          </div>
+        </div>
+
+        <form
+          onSubmit={handleCommentSubmit}
+          className="mt-5"
+        >
+          <textarea
+            value={content}
+            onChange={(event) =>
+              setContent(event.target.value)
+            }
+            placeholder="Write a thoughtful comment..."
+            rows={3}
+            maxLength={1000}
+            className="w-full resize-none rounded-md border border-slate-300 bg-white p-3 text-sm text-slate-950 outline-none transition focus:border-cyan-600 focus:ring-4 focus:ring-cyan-100"
+          />
+
+          <div className="mt-3 flex items-center justify-between gap-3">
+            <p className="text-xs text-slate-500">
+              {content.length}/1000
+            </p>
+
+            <button
+              type="submit"
+              disabled={
+                !content.trim() ||
+                submittingTarget === "comment"
+              }
+              className="inline-flex items-center gap-2 rounded-md bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <Send size={16} />
+              {submittingTarget === "comment"
+                ? "Posting..."
+                : "Post"}
+            </button>
+          </div>
+        </form>
+
+        {error && (
+          <div className="mt-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+            {error}
+          </div>
+        )}
+
+        <div className="mt-6 space-y-5">
+          {comments.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-slate-300 p-8 text-center">
+              <p className="font-medium text-slate-800">
+                No comments yet
+              </p>
+              <p className="mt-1 text-sm text-slate-500">
+                Start the conversation for this artwork.
+              </p>
+            </div>
+          ) : (
+            comments.map((comment) => (
+              <article
                 key={comment._id}
                 className="rounded-lg border border-slate-200 p-4"
               >
-                <div className="flex items-center justify-between">
-                  <p className="font-semibold">
-                    @{comment.user.username}
-                  </p>
+                <CommentBody
+                  comment={comment}
+                  onLike={() =>
+                    handleLikeComment(comment)
+                  }
+                  onReply={() => {
+                    setActiveReplyId(
+                      activeReplyId === comment._id
+                        ? null
+                        : comment._id
+                    );
+                    setReplyContent("");
+                  }}
+                />
 
-                  <p className="text-sm text-slate-500">
-                    {new Date(
-                      comment.createdAt
-                    ).toLocaleDateString()}
-                  </p>
-                </div>
+                {comment.replies &&
+                  comment.replies.length > 0 && (
+                    <div className="mt-4 space-y-3 border-l border-slate-200 pl-4">
+                      {comment.replies.map(
+                        (reply) => (
+                          <CommentBody
+                            key={reply._id}
+                            comment={reply}
+                            compact
+                            onLike={() =>
+                              handleLikeComment(
+                                reply
+                              )
+                            }
+                            onReply={() => {
+                              setActiveReplyId(
+                                comment._id
+                              );
+                              setReplyContent(
+                                `@${reply.user.username} `
+                              );
+                            }}
+                          />
+                        )
+                      )}
+                    </div>
+                  )}
 
-                <p className="mt-2 text-slate-700">
-                  {comment.content}
-                </p>
-              </div>
-            )
-          )
-        )}
+                {activeReplyId ===
+                  comment._id && (
+                  <form
+                    onSubmit={(event) =>
+                      handleReplySubmit(
+                        event,
+                        comment._id
+                      )
+                    }
+                    className="mt-4 rounded-md bg-slate-50 p-3"
+                  >
+                    <textarea
+                      value={replyContent}
+                      onChange={(event) =>
+                        setReplyContent(
+                          event.target.value
+                        )
+                      }
+                      autoFocus
+                      placeholder={`Reply to @${comment.user.username}...`}
+                      rows={2}
+                      maxLength={1000}
+                      className="w-full resize-none rounded-md border border-slate-300 bg-white p-3 text-sm text-slate-950 outline-none transition focus:border-cyan-600 focus:ring-4 focus:ring-cyan-100"
+                    />
+
+                    <div className="mt-3 flex items-center justify-end gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActiveReplyId(null);
+                          setReplyContent("");
+                        }}
+                        className="rounded-md px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={
+                          !replyContent.trim() ||
+                          submittingTarget ===
+                            comment._id
+                        }
+                        className="rounded-md bg-slate-950 px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {submittingTarget ===
+                        comment._id
+                          ? "Replying..."
+                          : "Reply"}
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </article>
+            ))
+          )}
+        </div>
       </div>
     </section>
+  );
+}
+
+function CommentBody({
+  comment,
+  compact = false,
+  onReply,
+  onLike,
+}: {
+  comment: ArtworkComment;
+  compact?: boolean;
+  onReply: () => void;
+  onLike: () => void;
+}) {
+  const likesCount =
+    comment.likesCount || 0;
+
+  return (
+    <div className="flex gap-3">
+      <div
+        className={`flex shrink-0 items-center justify-center rounded-full bg-slate-950 font-semibold text-white ${
+          compact
+            ? "h-8 w-8 text-xs"
+            : "h-10 w-10 text-sm"
+        }`}
+      >
+        {comment.user.username
+          .slice(0, 1)
+          .toUpperCase()}
+      </div>
+
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <p className="font-semibold text-slate-950">
+            {getDisplayName(comment.user)}
+          </p>
+          <p className="text-sm text-slate-500">
+            @{comment.user.username}
+          </p>
+          <span className="text-slate-300">
+            /
+          </span>
+          <p className="text-sm text-slate-500">
+            {formatTime(comment.createdAt)}
+          </p>
+        </div>
+
+        <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-slate-700">
+          {comment.content}
+        </p>
+
+        <div className="mt-2 flex items-center gap-4">
+          <button
+            type="button"
+            onClick={onLike}
+            aria-pressed={comment.isLiked}
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 transition hover:text-rose-600"
+          >
+            <Heart
+              size={15}
+              className={
+                comment.isLiked
+                  ? "fill-rose-500 text-rose-500"
+                  : ""
+              }
+            />
+            {likesCount > 0 && (
+              <span>
+                {likesCount}{" "}
+                {likesCount === 1
+                  ? "like"
+                  : "likes"}
+              </span>
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={onReply}
+            className="text-sm font-semibold text-slate-500 transition hover:text-cyan-700"
+          >
+            Reply
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }

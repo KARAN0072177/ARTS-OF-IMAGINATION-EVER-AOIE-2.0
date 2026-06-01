@@ -15,6 +15,8 @@ export interface IComment
 
   parentComment?: Types.ObjectId | null;
 
+  likesCount: number;
+
   isEdited: boolean;
 
   createdAt: Date;
@@ -47,6 +49,11 @@ const CommentSchema =
         type: Schema.Types.ObjectId,
         ref: "Comment",
         default: null,
+      },
+
+      likesCount: {
+        type: Number,
+        default: 0,
       },
 
       isEdited: {
