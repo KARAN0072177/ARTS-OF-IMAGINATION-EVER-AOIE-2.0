@@ -7,9 +7,18 @@ import NotificationItem, {
   NotificationListItem,
 } from "./NotificationItem";
 
-export default function NotificationDropdown() {
+interface NotificationDropdownProps {
+  onMarkAllRead?: () => void;
+}
+
+export default function NotificationDropdown({
+  onMarkAllRead,
+}: NotificationDropdownProps) {
   const [loading, setLoading] =
     useState(true);
+
+  const [markingRead, setMarkingRead] =
+    useState(false);
 
   const [notifications, setNotifications] =
     useState<NotificationListItem[]>([]);
@@ -48,12 +57,65 @@ export default function NotificationDropdown() {
     };
   }, []);
 
+  async function handleMarkAllRead() {
+    try {
+      setMarkingRead(true);
+
+      const response = await fetch(
+        "/api/notifications/read-all",
+        {
+          method: "PATCH",
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        return;
+      }
+
+      setNotifications(
+        (currentNotifications) =>
+          currentNotifications.map(
+            (notification) => ({
+              ...notification,
+              isRead: true,
+            })
+          )
+      );
+
+      onMarkAllRead?.();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setMarkingRead(false);
+    }
+  }
+
+  const hasUnread = notifications.some(
+    (notification) =>
+      !notification.isRead
+  );
+
   return (
     <div className="absolute right-0 top-12 z-50 w-[360px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
-      <div className="border-b border-slate-200 p-4">
+      <div className="flex items-center justify-between gap-3 border-b border-slate-200 p-4">
         <h3 className="font-semibold">
           Notifications
         </h3>
+
+        <button
+          type="button"
+          onClick={handleMarkAllRead}
+          disabled={
+            !hasUnread || markingRead
+          }
+          className="rounded-md px-2.5 py-1.5 text-xs font-semibold text-cyan-700 transition hover:bg-cyan-50 disabled:cursor-not-allowed disabled:text-slate-400 disabled:hover:bg-transparent"
+        >
+          {markingRead
+            ? "Marking..."
+            : "Mark all read"}
+        </button>
       </div>
 
       {loading ? (

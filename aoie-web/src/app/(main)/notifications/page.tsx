@@ -6,7 +6,54 @@ import { connectDB } from "@/lib/db";
 
 import Notification from "@/models/Notification";
 
-import NotificationItem from "@/components/notifications/NotificationItem";
+import NotificationItem, {
+  NotificationListItem,
+} from "@/components/notifications/NotificationItem";
+
+interface RawNotification {
+  _id: {
+    toString(): string;
+  };
+  type: NotificationListItem["type"];
+  isRead: boolean;
+  createdAt: Date;
+  sender?: {
+    username?: string;
+    artistProfile?: {
+      displayName?: string;
+    };
+  } | null;
+  artwork?: {
+    _id: {
+      toString(): string;
+    };
+  } | null;
+}
+
+function serializeNotification(
+  notification: RawNotification
+): NotificationListItem {
+  return {
+    _id: notification._id.toString(),
+    type: notification.type,
+    isRead: notification.isRead,
+    createdAt:
+      notification.createdAt.toISOString(),
+    sender: notification.sender
+      ? {
+          username:
+            notification.sender.username || "",
+          artistProfile:
+            notification.sender.artistProfile,
+        }
+      : undefined,
+    artwork: notification.artwork
+      ? {
+          _id: notification.artwork._id.toString(),
+        }
+      : undefined,
+  };
+}
 
 export default async function NotificationsPage() {
   const session =
@@ -18,8 +65,7 @@ export default async function NotificationsPage() {
 
   await connectDB();
 
-  const notifications =
-    await Notification.find({
+  const notifications = (await Notification.find({
       recipient:
         session.user.id,
     })
@@ -34,7 +80,12 @@ export default async function NotificationsPage() {
       .sort({
         createdAt: -1,
       })
-      .lean();
+      .lean()) as unknown as RawNotification[];
+
+  const notificationItems =
+    notifications.map(
+      serializeNotification
+    );
 
   return (
     <section className="mx-auto max-w-3xl">
@@ -50,16 +101,16 @@ export default async function NotificationsPage() {
       </div>
 
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-        {notifications.length === 0 ? (
+        {notificationItems.length === 0 ? (
           <div className="p-12 text-center text-slate-500">
             No notifications yet.
           </div>
         ) : (
-          notifications.map(
-            (notification: any) => (
+          notificationItems.map(
+            (notification) => (
               <NotificationItem
                 key={
-                  notification._id.toString()
+                  notification._id
                 }
                 notification={
                   notification

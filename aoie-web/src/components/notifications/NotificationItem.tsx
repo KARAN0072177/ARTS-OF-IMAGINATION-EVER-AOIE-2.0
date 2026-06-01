@@ -1,4 +1,5 @@
-import Link from "next/link";
+"use client";
+import { useRouter } from "next/navigation";
 
 export interface NotificationListItem {
   _id: string;
@@ -26,7 +27,7 @@ interface NotificationItemProps {
 }
 
 export default function NotificationItem({
-  notification,
+    notification,
 }: NotificationItemProps) {
   const sender =
     notification.sender?.artistProfile
@@ -49,35 +50,63 @@ export default function NotificationItem({
     case "artwork_like":
       message = `${sender} liked your artwork`;
 
-      href = `/artwork/${notification.artwork?._id}`;
+      href = notification.artwork?._id
+        ? `/artwork/${notification.artwork._id}`
+        : "/notifications";
       break;
 
     case "artwork_comment":
       message = `${sender} commented on your artwork`;
 
-      href = `/artwork/${notification.artwork?._id}`;
+      href = notification.artwork?._id
+        ? `/artwork/${notification.artwork._id}`
+        : "/notifications";
       break;
 
     case "comment_reply":
       message = `${sender} replied to your comment`;
 
-      href = `/artwork/${notification.artwork?._id}`;
+      href = notification.artwork?._id
+        ? `/artwork/${notification.artwork._id}`
+        : "/notifications";
       break;
 
     case "comment_like":
       message = `${sender} liked your comment`;
 
-      href = `/artwork/${notification.artwork?._id}`;
+      href = notification.artwork?._id
+        ? `/artwork/${notification.artwork._id}`
+        : "/notifications";
       break;
 
     default:
       message = "New notification";
   }
 
+  const router = useRouter();
+
+  async function handleClick() {
+    try {
+      if (!notification.isRead) {
+        await fetch(
+          `/api/notifications/${notification._id}/read`,
+          {
+            method: "PATCH",
+          }
+        );
+      }
+
+      router.push(href);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   return (
-    <Link
-      href={href}
-      className={`block border-b border-slate-100 p-4 transition hover:bg-slate-50 ${
+    <button
+      type="button"
+      onClick={handleClick}
+      className={`w-full border-b border-slate-100 p-4 text-left transition hover:bg-slate-50 ${
         !notification.isRead
           ? "bg-cyan-50/50"
           : ""
@@ -92,6 +121,6 @@ export default function NotificationItem({
           notification.createdAt
         ).toLocaleString()}
       </p>
-    </Link>
+    </button>
   );
 }

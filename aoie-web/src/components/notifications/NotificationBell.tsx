@@ -63,7 +63,11 @@ export default function NotificationBell() {
       </button>
 
       {open && (
-        <NotificationDropdown />
+        <NotificationDropdown
+          onMarkAllRead={() =>
+            setUnreadCount(0)
+          }
+        />
       )}
     </div>
   );
