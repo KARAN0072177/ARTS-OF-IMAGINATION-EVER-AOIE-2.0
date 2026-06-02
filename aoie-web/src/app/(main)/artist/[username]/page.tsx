@@ -219,7 +219,7 @@ export default async function ArtistPage({
             No artworks uploaded yet.
           </div>
         ) : (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="columns-2 gap-4 sm:columns-3 lg:columns-4 xl:columns-5">
             {artworks.map((artwork) => (
               <ArtworkCard
                 key={artwork._id.toString()}
@@ -227,6 +227,9 @@ export default async function ArtistPage({
                 title={artwork.title}
                 imageUrl={artwork.imageUrl}
                 category={artwork.category}
+                artistName={displayName}
+                artistUsername={username}
+                artistAvatar={avatar}
                 likesCount={artwork.likesCount}
                 isLiked={likedSet.has(
                   artwork._id.toString()
