@@ -13,13 +13,16 @@ interface IArtistProfile {
 }
 
 export interface IUser extends Document {
-  username: string;
+  username?: string | null;
   email: string;
-  password: string;
+  password?: string;
 
   role: "artist" | "user" | "admin" | "super-admin";
 
   isVerified: boolean;
+  googleId?: string;
+  authProviders: string[];
+  usernameSetupRequired: boolean;
 
   artistProfile?: IArtistProfile;
 
@@ -34,8 +37,7 @@ const UserSchema = new Schema<IUser>(
   {
     username: {
       type: String,
-      required: true,
-      unique: true,
+      default: null,
       trim: true,
       minlength: 3,
       maxlength: 20,
@@ -51,7 +53,6 @@ const UserSchema = new Schema<IUser>(
 
     password: {
       type: String,
-      required: true,
     },
 
     role: {
@@ -61,6 +62,21 @@ const UserSchema = new Schema<IUser>(
     },
 
     isVerified: {
+      type: Boolean,
+      default: false,
+    },
+
+    googleId: {
+      type: String,
+      default: "",
+    },
+
+    authProviders: {
+      type: [String],
+      default: ["credentials"],
+    },
+
+    usernameSetupRequired: {
       type: Boolean,
       default: false,
     },
@@ -111,7 +127,41 @@ const UserSchema = new Schema<IUser>(
   }
 );
 
+UserSchema.index(
+  {
+    username: 1,
+  },
+  {
+    unique: true,
+    partialFilterExpression: {
+      username: {
+        $type: "string",
+      },
+    },
+  }
+);
+
+UserSchema.index(
+  {
+    googleId: 1,
+  },
+  {
+    sparse: true,
+  }
+);
+
+if (
+  process.env.NODE_ENV !== "production" &&
+  mongoose.models.User
+) {
+  delete mongoose.models.User;
+}
+
 const User: Model<IUser> =
-  mongoose.models.User || mongoose.model<IUser>("User", UserSchema);
+  mongoose.models.User ||
+  mongoose.model<IUser>(
+    "User",
+    UserSchema
+  );
 
 export default User;

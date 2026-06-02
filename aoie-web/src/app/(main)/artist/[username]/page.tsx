@@ -52,7 +52,7 @@ export default async function ArtistPage({
     role: "artist",
   }).lean();
 
-  if (!artist) {
+  if (!artist || !artist.username) {
     notFound();
   }
 

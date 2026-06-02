@@ -30,15 +30,27 @@ export default async function ProfilePage() {
   await connectDB();
 
   const user = await User.findById(session.user.id)
-    .select("username email role isVerified createdAt updatedAt")
+    .select(
+      "username email role isVerified usernameSetupRequired createdAt updatedAt"
+    )
     .lean();
 
   if (!user) {
     redirect("/login");
   }
 
+  if (
+    !user.username &&
+    user.usernameSetupRequired
+  ) {
+    redirect("/complete-profile");
+  }
+
+  const username =
+    user.username || "AOIE User";
+
   const details = [
-    ["Username", user.username],
+    ["Username", username],
     ["Email", user.email],
     ["Role", user.role],
     ["Email status", user.isVerified ? "Verified" : "Not verified"],
@@ -85,11 +97,11 @@ export default async function ProfilePage() {
         <aside className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
           <div className="flex items-center gap-4">
             <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-950 text-lg font-semibold text-white">
-              {user.username.slice(0, 1).toUpperCase()}
+              {username.slice(0, 1).toUpperCase()}
             </div>
             <div>
               <h2 className="text-lg font-semibold text-slate-950">
-                {user.username}
+                {username}
               </h2>
               <p className="mt-1 text-sm text-slate-600">{user.email}</p>
             </div>

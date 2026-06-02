@@ -8,6 +8,8 @@ import { signIn } from "next-auth/react";
 
 import { useRouter } from "next/navigation";
 
+import GoogleAuthButton from "@/components/auth/GoogleAuthButton";
+
 export default function LoginForm() {
   const router = useRouter();
 
@@ -133,6 +135,16 @@ export default function LoginForm() {
             : "Sign in"}
         </button>
       </form>
+
+      <div className="my-6 flex items-center gap-3">
+        <div className="h-px flex-1 bg-slate-200" />
+        <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
+          or
+        </span>
+        <div className="h-px flex-1 bg-slate-200" />
+      </div>
+
+      <GoogleAuthButton />
 
       <p className="mt-6 text-center text-sm text-slate-600">
         New to AOIE?{" "}

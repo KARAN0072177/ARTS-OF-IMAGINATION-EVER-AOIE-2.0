@@ -5,7 +5,10 @@ import { connectDB } from "@/lib/db";
 
 import User from "@/models/User";
 
-export async function POST() {
+const usernamePattern =
+  /^[a-zA-Z0-9_]{3,20}$/;
+
+export async function POST(req: Request) {
   try {
     const session =
       await getServerSession(authOptions);
@@ -20,12 +23,47 @@ export async function POST() {
       );
     }
 
+    const body = await req.json();
+    const username =
+      typeof body.username === "string"
+        ? body.username.trim()
+        : "";
+
+    if (!usernamePattern.test(username)) {
+      return Response.json(
+        {
+          success: false,
+          message:
+            "Username must be 3-20 characters and can use letters, numbers, or underscores.",
+        },
+        { status: 400 }
+      );
+    }
+
     await connectDB();
 
-    const user =
-      await User.findById(
-        session.user.id
+    const existingUser =
+      await User.findOne({
+        username,
+        _id: {
+          $ne: session.user.id,
+        },
+      }).lean();
+
+    if (existingUser) {
+      return Response.json(
+        {
+          success: false,
+          message:
+            "That username is already taken.",
+        },
+        { status: 409 }
       );
+    }
+
+    const user = await User.findById(
+      session.user.id
+    );
 
     if (!user) {
       return Response.json(
@@ -37,53 +75,14 @@ export async function POST() {
       );
     }
 
-    if (user.role === "artist") {
-      return Response.json(
-        {
-          success: false,
-          message:
-            "Account is already an artist account",
-        },
-        { status: 400 }
-      );
-    }
-
-    if (!user.username) {
-      return Response.json(
-        {
-          success: false,
-          message:
-            "Choose a username before activating your artist account",
-        },
-        { status: 400 }
-      );
-    }
-
-    user.role = "artist";
-
-    user.artistProfile = {
-      displayName: user.username,
-
-      bio: "",
-
-      website: "",
-
-      location: "",
-
-      avatar: "",
-
-      banner: "",
-
-      isArtistProfileComplete:
-        false,
-    };
+    user.username = username;
+    user.usernameSetupRequired = false;
 
     await user.save();
 
     return Response.json({
       success: true,
-      message:
-        "Artist account activated successfully",
+      username,
     });
   } catch (error) {
     console.error(error);
