@@ -9,6 +9,7 @@ import User from "@/models/User";
 import Artwork from "@/models/Artwork";
 import Follow from "@/models/Follow";
 import Like from "@/models/Like";
+import Save from "@/models/Save";
 
 import ArtworkCard from "@/components/artwork/ArtworkCard";
 
@@ -29,6 +30,10 @@ interface ArtistArtwork {
 }
 
 interface ArtworkLike {
+  artwork: Types.ObjectId;
+}
+
+interface ArtworkSave {
   artwork: Types.ObjectId;
 }
 
@@ -65,6 +70,7 @@ export default async function ArtistPage({
     followingCount,
     existingFollow,
     likedArtworkIds,
+    savedArtworkIds,
   ] = await Promise.all([
     Follow.countDocuments({
       following: artist._id,
@@ -90,11 +96,28 @@ export default async function ArtistPage({
           .select("artwork")
           .lean()) as unknown as ArtworkLike[])
       : ([] as ArtworkLike[]),
+    session?.user?.id && artworks.length > 0
+      ? ((await Save.find({
+          user: session.user.id,
+          artwork: {
+            $in: artworks.map(
+              (artwork) => artwork._id
+            ),
+          },
+        })
+          .select("artwork")
+          .lean()) as unknown as ArtworkSave[])
+      : ([] as ArtworkSave[]),
   ]);
 
   const likedSet = new Set(
     likedArtworkIds.map((like) =>
       like.artwork.toString()
+    )
+  );
+  const savedSet = new Set(
+    savedArtworkIds.map((save) =>
+      save.artwork.toString()
     )
   );
 
@@ -189,6 +212,9 @@ export default async function ArtistPage({
                 category={artwork.category}
                 likesCount={artwork.likesCount}
                 isLiked={likedSet.has(
+                  artwork._id.toString()
+                )}
+                isSaved={savedSet.has(
                   artwork._id.toString()
                 )}
               />

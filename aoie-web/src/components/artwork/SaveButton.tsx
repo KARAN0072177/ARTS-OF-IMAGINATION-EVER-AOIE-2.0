@@ -48,7 +48,7 @@ export default function SaveButton({
     <button
       onClick={handleSave}
       disabled={submitting}
-      className={`rounded-md px-4 py-2 text-sm font-medium transition ${
+      className={`inline-flex w-full items-center justify-center rounded-md px-4 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${
         saved
           ? "border border-slate-300 bg-white text-slate-900"
           : "bg-slate-950 text-white"

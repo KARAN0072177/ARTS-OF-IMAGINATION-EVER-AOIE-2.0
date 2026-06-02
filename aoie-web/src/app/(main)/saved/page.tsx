@@ -6,6 +6,7 @@ import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 
 import Save from "@/models/Save";
+import Like from "@/models/Like";
 
 import ArtworkCard from "@/components/artwork/ArtworkCard";
 
@@ -20,6 +21,10 @@ interface SavedArtwork {
 interface SavedItem {
   _id: Types.ObjectId;
   artwork: SavedArtwork | null;
+}
+
+interface LikedItem {
+  artwork: Types.ObjectId;
 }
 
 export default async function SavedPage() {
@@ -52,6 +57,29 @@ export default async function SavedPage() {
       } => Boolean(saved.artwork)
     );
 
+  const artworkIds =
+    savedArtworkItems.map(
+      (saved) => saved.artwork._id
+    );
+
+  const likedItems =
+    artworkIds.length > 0
+      ? ((await Like.find({
+          user: session.user.id,
+          artwork: {
+            $in: artworkIds,
+          },
+        })
+          .select("artwork")
+          .lean()) as unknown as LikedItem[])
+      : [];
+
+  const likedSet = new Set(
+    likedItems.map((item) =>
+      item.artwork.toString()
+    )
+  );
+
   return (
     <section>
       <div className="mb-10">
@@ -82,7 +110,7 @@ export default async function SavedPage() {
           </p>
         </div>
       ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="columns-2 gap-4 sm:columns-3 lg:columns-4 xl:columns-5">
           {savedArtworkItems.map(
             (saved) => (
               <ArtworkCard
@@ -102,6 +130,10 @@ export default async function SavedPage() {
                 likesCount={
                   saved.artwork.likesCount
                 }
+                isLiked={likedSet.has(
+                  saved.artwork._id.toString()
+                )}
+                isSaved
               />
             )
           )}

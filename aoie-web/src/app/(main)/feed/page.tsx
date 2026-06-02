@@ -7,8 +7,11 @@ import { connectDB } from "@/lib/db";
 
 import Artwork from "@/models/Artwork";
 import Like from "@/models/Like";
+import Save from "@/models/Save";
 
-import ArtworkCard from "@/components/artwork/ArtworkCard";
+import GalleryFeed, {
+  GalleryArtwork,
+} from "@/components/artwork/GalleryFeed";
 
 interface FeedArtwork {
   _id: Types.ObjectId;
@@ -25,6 +28,10 @@ interface FeedArtwork {
 }
 
 interface ArtworkLike {
+  artwork: Types.ObjectId;
+}
+
+interface ArtworkSave {
   artwork: Types.ObjectId;
 }
 
@@ -129,23 +136,62 @@ export default async function FeedPage({
     (artwork) => artwork._id
   );
 
-  const likedArtworkIds =
+  const [likedArtworkIds, savedArtworkIds] =
     session?.user?.id && artworkIds.length > 0
-      ? ((await Like.find({
-          user: session.user.id,
-          artwork: {
-            $in: artworkIds,
-          },
-        })
-          .select("artwork")
-          .lean()) as unknown as ArtworkLike[])
-      : ([] as ArtworkLike[]);
+      ? await Promise.all([
+          Like.find({
+            user: session.user.id,
+            artwork: {
+              $in: artworkIds,
+            },
+          })
+            .select("artwork")
+            .lean(),
+          Save.find({
+            user: session.user.id,
+            artwork: {
+              $in: artworkIds,
+            },
+          })
+            .select("artwork")
+            .lean(),
+        ])
+      : [[], []];
 
   const likedSet = new Set(
-    likedArtworkIds.map((like) =>
-      like.artwork.toString()
-    )
+    (
+      likedArtworkIds as unknown as ArtworkLike[]
+    ).map((like) => like.artwork.toString())
   );
+  const savedSet = new Set(
+    (
+      savedArtworkIds as unknown as ArtworkSave[]
+    ).map((save) => save.artwork.toString())
+  );
+
+  const galleryArtworks: GalleryArtwork[] =
+    artworks.map((artwork) => {
+      const artworkId =
+        artwork._id.toString();
+      const artistUsername =
+        artwork.artist?.username;
+
+      return {
+        id: artworkId,
+        title: artwork.title,
+        imageUrl: artwork.imageUrl,
+        category: artwork.category,
+        artistUsername,
+        artistName:
+          artwork.artist?.artistProfile
+            ?.displayName ||
+          artistUsername,
+        likesCount:
+          artwork.likesCount || 0,
+        isLiked: likedSet.has(artworkId),
+        isSaved: savedSet.has(artworkId),
+      };
+    });
 
   return (
     <section className="space-y-6">
@@ -227,97 +273,13 @@ export default async function FeedPage({
           )}
         </div>
       ) : (
-        <>
-          <div className="flex items-center justify-between gap-3 text-sm text-slate-500">
-            <span>
-              Showing {skip + 1}-
-              {Math.min(
-                skip + artworks.length,
-                totalCount
-              )}{" "}
-              of {totalCount}
-            </span>
-
-            {totalPages > 1 && (
-              <span>
-                Page {currentPage} of{" "}
-                {totalPages}
-              </span>
-            )}
-          </div>
-
-          <div className="columns-2 gap-4 sm:columns-3 lg:columns-4 xl:columns-5">
-            {artworks.map((artwork) => {
-              const artworkId =
-                artwork._id.toString();
-              const artistUsername =
-                artwork.artist?.username;
-
-              return (
-                <ArtworkCard
-                  key={artworkId}
-                  id={artworkId}
-                  title={artwork.title}
-                  imageUrl={artwork.imageUrl}
-                  category={artwork.category}
-                  artistUsername={
-                    artistUsername
-                  }
-                  artistName={
-                    artwork.artist
-                      ?.artistProfile
-                      ?.displayName ||
-                    artistUsername
-                  }
-                  likesCount={artwork.likesCount}
-                  isLiked={likedSet.has(
-                    artworkId
-                  )}
-                />
-              );
-            })}
-          </div>
-
-          {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-3 border-t border-slate-200 pt-6">
-              {currentPage > 1 ? (
-                <Link
-                  href={getFeedHref({
-                    category:
-                      selectedCategory,
-                    page:
-                      currentPage - 1,
-                  })}
-                  className="rounded-full border border-slate-200 bg-white px-5 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-                >
-                  Previous
-                </Link>
-              ) : (
-                <span className="rounded-full border border-slate-200 bg-slate-100 px-5 py-2 text-sm font-semibold text-slate-400">
-                  Previous
-                </span>
-              )}
-
-              {currentPage < totalPages ? (
-                <Link
-                  href={getFeedHref({
-                    category:
-                      selectedCategory,
-                    page:
-                      currentPage + 1,
-                  })}
-                  className="rounded-full bg-slate-950 px-5 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
-                >
-                  Next
-                </Link>
-              ) : (
-                <span className="rounded-full bg-slate-100 px-5 py-2 text-sm font-semibold text-slate-400">
-                  Next
-                </span>
-              )}
-            </div>
-          )}
-        </>
+        <GalleryFeed
+          initialArtworks={galleryArtworks}
+          category={selectedCategory}
+          initialPage={currentPage}
+          totalCount={totalCount}
+          totalPages={totalPages}
+        />
       )}
     </section>
   );

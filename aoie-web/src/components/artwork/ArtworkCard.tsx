@@ -15,6 +15,7 @@ interface ArtworkCardProps {
   artistName?: string;
   likesCount?: number;
   isLiked?: boolean;
+  isSaved?: boolean;
 }
 
 export default function ArtworkCard({
@@ -26,11 +27,14 @@ export default function ArtworkCard({
   artistName,
   likesCount = 0,
   isLiked = false,
+  isSaved = false,
 }: ArtworkCardProps) {
   const [liked, setLiked] =
     useState(isLiked);
   const [count, setCount] =
     useState(likesCount);
+  const [saved, setSaved] =
+    useState(isSaved);
   const [quickViewOpen, setQuickViewOpen] =
     useState(false);
 
@@ -74,6 +78,7 @@ export default function ArtworkCard({
             artistUsername,
             likesCount: count,
             isLiked: liked,
+            isSaved: saved,
           }}
           onLikeChange={(
             nextLiked,
@@ -82,6 +87,7 @@ export default function ArtworkCard({
             setLiked(nextLiked);
             setCount(nextCount);
           }}
+          onSaveChange={setSaved}
           onClose={() =>
             setQuickViewOpen(false)
           }

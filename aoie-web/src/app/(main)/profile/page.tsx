@@ -1,9 +1,13 @@
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
+import Link from "next/link";
+import { Bookmark, Heart } from "lucide-react";
 
 import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 import Follow from "@/models/Follow";
+import Like from "@/models/Like";
+import Save from "@/models/Save";
 import User from "@/models/User";
 import BecomeArtistButton from "@/components/profile/BecomeArtistButton";
 import FollowStats from "@/components/profile/FollowStats";
@@ -42,13 +46,24 @@ export default async function ProfilePage() {
     ["Last updated", formatDate(user.updatedAt)],
   ];
 
-  const [followersCount, followingCount] =
+  const [
+    followersCount,
+    followingCount,
+    likedImagesCount,
+    savedImagesCount,
+  ] =
     await Promise.all([
       Follow.countDocuments({
         following: user._id,
       }),
       Follow.countDocuments({
         follower: user._id,
+      }),
+      Like.countDocuments({
+        user: user._id,
+      }),
+      Save.countDocuments({
+        user: user._id,
       }),
     ]);
 
@@ -98,6 +113,50 @@ export default async function ProfilePage() {
               followersCount={followersCount}
               followingCount={followingCount}
             />
+          </div>
+
+          <div className="mt-5 grid grid-cols-2 gap-3">
+            <Link
+              href="/liked"
+              className="rounded-lg border border-rose-100 bg-rose-50 p-4 transition hover:border-rose-200 hover:bg-rose-100"
+            >
+              <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-rose-600 shadow-sm">
+                <Heart
+                  size={18}
+                  className="fill-rose-500"
+                />
+              </span>
+              <span className="mt-3 block text-sm font-semibold text-slate-950">
+                Liked Images
+              </span>
+              <span className="mt-1 block text-sm text-slate-600">
+                {likedImagesCount}{" "}
+                {likedImagesCount === 1
+                  ? "image"
+                  : "images"}
+              </span>
+            </Link>
+
+            <Link
+              href="/saved"
+              className="rounded-lg border border-cyan-100 bg-cyan-50 p-4 transition hover:border-cyan-200 hover:bg-cyan-100"
+            >
+              <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-cyan-700 shadow-sm">
+                <Bookmark
+                  size={18}
+                  className="fill-cyan-600"
+                />
+              </span>
+              <span className="mt-3 block text-sm font-semibold text-slate-950">
+                Saved Images
+              </span>
+              <span className="mt-1 block text-sm text-slate-600">
+                {savedImagesCount}{" "}
+                {savedImagesCount === 1
+                  ? "image"
+                  : "images"}
+              </span>
+            </Link>
           </div>
 
           {user.role === "user" ? (

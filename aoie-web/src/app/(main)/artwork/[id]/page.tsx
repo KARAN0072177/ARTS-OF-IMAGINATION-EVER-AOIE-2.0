@@ -244,67 +244,69 @@ export default async function ArtworkPage({
     );
 
   return (
-    <section className="mx-auto max-w-7xl">
-      <div className="grid gap-10 lg:grid-cols-[1.4fr_0.8fr]">
-        {/* Artwork */}
-
-        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+    <section className="mx-auto max-w-7xl space-y-8">
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1.45fr)_360px]">
+        <div className="self-start overflow-hidden rounded-xl border border-slate-200 bg-slate-950 shadow-sm">
           <img
             src={artwork.imageUrl}
             alt={artwork.title}
-            className="w-full object-cover"
+            className="h-auto w-full object-contain"
           />
         </div>
 
-        {/* Details */}
-
-        <aside className="space-y-6">
-          <div>
-            <p className="text-sm font-medium text-cyan-600">
+        <aside className="self-start rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-full bg-cyan-50 px-3 py-1 text-xs font-semibold text-cyan-700">
               {artwork.category}
-            </p>
-
-            <h1 className="mt-2 text-3xl font-bold text-slate-950">
-              {artwork.title}
-            </h1>
+            </span>
+            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+              {artwork.likesCount}{" "}
+              {artwork.likesCount === 1
+                ? "like"
+                : "likes"}
+            </span>
           </div>
 
-          <div>
-            <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">
-              Artist
-            </h2>
+          <h1 className="mt-4 text-3xl font-semibold leading-tight text-slate-950">
+            {artwork.title}
+          </h1>
 
-            <Link
-              href={`/artist/${artist.username}`}
-              className="font-medium text-slate-950 hover:text-cyan-600"
-            >
-              {displayName}
-            </Link>
-
-            <p className="text-sm text-slate-500">
-              @{artist.username}
-            </p>
-          </div>
+          <Link
+            href={`/artist/${artist.username}`}
+            className="mt-5 flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-3 transition hover:bg-slate-100"
+          >
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-950 text-sm font-semibold uppercase text-white">
+              {displayName.charAt(0)}
+            </span>
+            <span className="min-w-0">
+              <span className="block truncate text-sm font-semibold text-slate-950">
+                {displayName}
+              </span>
+              <span className="block truncate text-sm text-slate-500">
+                @{artist.username}
+              </span>
+            </span>
+          </Link>
 
           {artwork.description && (
-            <div>
-              <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">
+            <div className="mt-6 border-t border-slate-200 pt-5">
+              <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
                 Description
               </h2>
 
-              <p className="whitespace-pre-wrap text-slate-700">
+              <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-700">
                 {artwork.description}
               </p>
             </div>
           )}
 
           {artwork.tags.length > 0 && (
-            <div>
-              <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
+            <div className="mt-6 border-t border-slate-200 pt-5">
+              <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
                 Tags
               </h2>
 
-              <div className="flex flex-wrap gap-2">
+              <div className="mt-3 flex flex-wrap gap-2">
                 {artwork.tags.map(
                   (tag: string) => (
                     <span
@@ -319,54 +321,40 @@ export default async function ArtworkPage({
             </div>
           )}
 
-          <div className="rounded-lg border border-slate-200 p-4">
-            <dl className="space-y-3">
-              <div className="flex justify-between">
-                <dt className="text-slate-500">
-                  Views
-                </dt>
+          <dl className="mt-6 space-y-3 border-t border-slate-200 pt-5 text-sm">
+            <div className="flex justify-between gap-4">
+              <dt className="text-slate-500">
+                Views
+              </dt>
 
-                <dd className="font-medium">
-                  {artwork.views}
-                </dd>
-              </div>
+              <dd className="font-semibold text-slate-950">
+                {artwork.views}
+              </dd>
+            </div>
 
-              <div className="flex justify-between">
-                <dt className="text-slate-500">
-                  Likes
-                </dt>
+            <div className="flex justify-between gap-4">
+              <dt className="text-slate-500">
+                Uploaded
+              </dt>
 
-                <dd className="font-medium">
-                  {artwork.likesCount}
-                </dd>
-              </div>
+              <dd className="font-semibold text-slate-950">
+                {formatDate(
+                  artwork.createdAt
+                )}
+              </dd>
+            </div>
+          </dl>
 
-              <div className="flex gap-3">
-                <SaveButton
-                  artworkId={
-                    artwork._id.toString()
-                  }
-                  initialSaved={!!existingSave}
-                />
-              </div>
-
-              <div className="flex justify-between">
-                <dt className="text-slate-500">
-                  Uploaded
-                </dt>
-
-                <dd className="font-medium">
-                  {formatDate(
-                    artwork.createdAt
-                  )}
-                </dd>
-              </div>
-            </dl>
+          <div className="mt-6">
+            <SaveButton
+              artworkId={artwork._id.toString()}
+              initialSaved={!!existingSave}
+            />
           </div>
         </aside>
+      </div>
 
-        {/* comment section */}
-
+      <div>
         <CommentSection
           artworkId={artwork._id.toString()}
           initialComments={
