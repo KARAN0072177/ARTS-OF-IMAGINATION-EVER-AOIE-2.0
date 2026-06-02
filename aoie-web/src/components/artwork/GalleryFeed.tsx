@@ -20,6 +20,7 @@ export interface GalleryArtwork {
   category: string;
   artistUsername?: string;
   artistName?: string;
+  artistAvatar?: string;
   likesCount: number;
   isLiked: boolean;
   isSaved: boolean;

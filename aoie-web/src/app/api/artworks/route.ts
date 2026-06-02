@@ -19,6 +19,7 @@ interface FeedArtwork {
     username?: string;
     artistProfile?: {
       displayName?: string;
+      avatar?: string;
     };
   };
 }
@@ -92,7 +93,7 @@ export async function GET(req: Request) {
           )
           .populate(
             "artist",
-            "username artistProfile.displayName"
+            "username artistProfile.displayName artistProfile.avatar"
           )
           .sort({
             createdAt: -1,
@@ -170,6 +171,9 @@ export async function GET(req: Request) {
               artwork.artist?.artistProfile
                 ?.displayName ||
               artistUsername,
+            artistAvatar:
+              artwork.artist?.artistProfile
+                ?.avatar || "",
             likesCount:
               artwork.likesCount || 0,
             isLiked:

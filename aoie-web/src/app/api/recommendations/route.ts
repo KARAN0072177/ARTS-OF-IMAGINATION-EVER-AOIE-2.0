@@ -15,6 +15,7 @@ interface RecommendationArtwork {
     username?: string;
     artistProfile?: {
       displayName?: string;
+      avatar?: string;
     };
   };
   title: string;
@@ -72,6 +73,9 @@ function toRecommendation(
         ?.displayName ||
       artwork.artist?.username ||
       "",
+    artistAvatar:
+      artwork.artist?.artistProfile
+        ?.avatar || "",
     isLiked: likedSet.has(id),
     isSaved: savedSet.has(id),
   };
@@ -258,7 +262,7 @@ export async function GET(req: Request) {
           )
           .populate(
             "artist",
-            "username artistProfile.displayName"
+            "username artistProfile.displayName artistProfile.avatar"
           )
           .sort({ createdAt: -1 })
           .limit(80)
@@ -270,7 +274,7 @@ export async function GET(req: Request) {
           )
           .populate(
             "artist",
-            "username artistProfile.displayName"
+            "username artistProfile.displayName artistProfile.avatar"
           )
           .sort({ createdAt: -1 })
           .limit(50)
@@ -285,7 +289,7 @@ export async function GET(req: Request) {
           )
           .populate(
             "artist",
-            "username artistProfile.displayName"
+            "username artistProfile.displayName artistProfile.avatar"
           )
           .sort({
             likesCount: -1,

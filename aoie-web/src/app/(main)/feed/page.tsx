@@ -23,6 +23,7 @@ interface FeedArtwork {
     username?: string;
     artistProfile?: {
       displayName?: string;
+      avatar?: string;
     };
   };
 }
@@ -123,7 +124,7 @@ export default async function FeedPage({
     )
     .populate(
       "artist",
-      "username artistProfile.displayName"
+      "username artistProfile.displayName artistProfile.avatar"
     )
     .sort({
       createdAt: -1,
@@ -186,6 +187,9 @@ export default async function FeedPage({
           artwork.artist?.artistProfile
             ?.displayName ||
           artistUsername,
+        artistAvatar:
+          artwork.artist?.artistProfile
+            ?.avatar || "",
         likesCount:
           artwork.likesCount || 0,
         isLiked: likedSet.has(artworkId),

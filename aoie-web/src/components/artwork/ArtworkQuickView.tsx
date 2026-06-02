@@ -24,6 +24,7 @@ interface Recommendation {
   category: string;
   artistName?: string;
   artistUsername?: string;
+  artistAvatar?: string;
   likesCount: number;
   isLiked: boolean;
   isSaved: boolean;
@@ -438,7 +439,20 @@ export default function ArtworkQuickView({
                       className="flex min-w-0 flex-1 items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
                     >
                       <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-950 text-white">
-                        <User size={16} />
+                        {activeArtwork.artistAvatar ? (
+                          <img
+                            src={
+                              activeArtwork.artistAvatar
+                            }
+                            alt={
+                              activeArtwork.artistName ||
+                              activeArtwork.artistUsername
+                            }
+                            className="h-full w-full rounded-full object-cover"
+                          />
+                        ) : (
+                          <User size={16} />
+                        )}
                       </span>
                       <span className="min-w-0">
                         <span className="block truncate">

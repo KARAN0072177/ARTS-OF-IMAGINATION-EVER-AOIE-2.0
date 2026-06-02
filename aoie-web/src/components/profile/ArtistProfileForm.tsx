@@ -36,6 +36,14 @@ interface CropState {
   naturalHeight: number;
 }
 
+interface DragState {
+  pointerId: number;
+  startClientX: number;
+  startClientY: number;
+  startX: number;
+  startY: number;
+}
+
 const cropConfig = {
   avatar: {
     label: "Profile photo",
@@ -53,6 +61,14 @@ const cropConfig = {
 
 function getInitial(name: string) {
   return name.slice(0, 1).toUpperCase();
+}
+
+function clamp(
+  value: number,
+  min: number,
+  max: number
+) {
+  return Math.min(max, Math.max(min, value));
 }
 
 async function createCroppedFile(
@@ -100,9 +116,9 @@ async function createCroppedFile(
   const maxY =
     (naturalHeight - sourceHeight) / 2;
   const sourceX =
-    maxX + crop.x * maxX;
+    maxX - crop.x * maxX;
   const sourceY =
-    maxY + crop.y * maxY;
+    maxY - crop.y * maxY;
 
   context.drawImage(
     image,
@@ -146,6 +162,8 @@ export default function ArtistProfileForm({
     useRef<HTMLInputElement | null>(null);
   const bannerInputRef =
     useRef<HTMLInputElement | null>(null);
+  const dragRef =
+    useRef<DragState | null>(null);
 
   const [form, setForm] =
     useState<ArtistProfile>({
@@ -332,6 +350,73 @@ export default function ArtistProfileForm({
           ? error.message
           : "Unable to crop image"
       );
+    }
+  };
+
+  const handleCropPointerDown = (
+    event: React.PointerEvent<HTMLDivElement>
+  ) => {
+    if (!crop) {
+      return;
+    }
+
+    event.currentTarget.setPointerCapture(
+      event.pointerId
+    );
+    dragRef.current = {
+      pointerId: event.pointerId,
+      startClientX: event.clientX,
+      startClientY: event.clientY,
+      startX: crop.x,
+      startY: crop.y,
+    };
+  };
+
+  const handleCropPointerMove = (
+    event: React.PointerEvent<HTMLDivElement>
+  ) => {
+    const drag = dragRef.current;
+
+    if (!drag || !crop) {
+      return;
+    }
+
+    const bounds =
+      event.currentTarget.getBoundingClientRect();
+    const deltaX =
+      (event.clientX - drag.startClientX) /
+      bounds.width;
+    const deltaY =
+      (event.clientY - drag.startClientY) /
+      bounds.height;
+
+    setCrop((current) =>
+      current
+        ? {
+            ...current,
+            x: clamp(
+              drag.startX + deltaX * 2,
+              -1,
+              1
+            ),
+            y: clamp(
+              drag.startY + deltaY * 2,
+              -1,
+              1
+            ),
+          }
+        : current
+    );
+  };
+
+  const handleCropPointerEnd = (
+    event: React.PointerEvent<HTMLDivElement>
+  ) => {
+    if (
+      dragRef.current?.pointerId ===
+      event.pointerId
+    ) {
+      dragRef.current = null;
     }
   };
 
@@ -625,8 +710,9 @@ export default function ArtistProfileForm({
                   }
                 </h3>
                 <p className="mt-1 text-sm text-slate-500">
-                  Adjust zoom and position
-                  before uploading.
+                  Drag the image to
+                  position it, then adjust
+                  zoom.
                 </p>
               </div>
 
@@ -646,11 +732,24 @@ export default function ArtistProfileForm({
                   crop.field === "avatar"
                     ? "aspect-square max-w-sm rounded-full"
                     : "aspect-[3/1] w-full"
-                }`}
+                } cursor-grab touch-none active:cursor-grabbing`}
+                onPointerDown={
+                  handleCropPointerDown
+                }
+                onPointerMove={
+                  handleCropPointerMove
+                }
+                onPointerUp={
+                  handleCropPointerEnd
+                }
+                onPointerCancel={
+                  handleCropPointerEnd
+                }
               >
                 <img
                   src={crop.src}
                   alt="Crop preview"
+                  draggable={false}
                   onLoad={(event) => {
                     const {
                       naturalWidth,
@@ -674,7 +773,7 @@ export default function ArtistProfileForm({
                 />
               </div>
 
-              <div className="mt-5 grid gap-4 sm:grid-cols-3">
+              <div className="mt-5">
                 <label className="block">
                   <span className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
                     Zoom
@@ -691,58 +790,6 @@ export default function ArtistProfileForm({
                           ? {
                               ...current,
                               zoom: Number(
-                                event.target.value
-                              ),
-                            }
-                          : current
-                      )
-                    }
-                    className="mt-2 w-full"
-                  />
-                </label>
-
-                <label className="block">
-                  <span className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
-                    Horizontal
-                  </span>
-                  <input
-                    type="range"
-                    min="-1"
-                    max="1"
-                    step="0.05"
-                    value={crop.x}
-                    onChange={(event) =>
-                      setCrop((current) =>
-                        current
-                          ? {
-                              ...current,
-                              x: Number(
-                                event.target.value
-                              ),
-                            }
-                          : current
-                      )
-                    }
-                    className="mt-2 w-full"
-                  />
-                </label>
-
-                <label className="block">
-                  <span className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
-                    Vertical
-                  </span>
-                  <input
-                    type="range"
-                    min="-1"
-                    max="1"
-                    step="0.05"
-                    value={crop.y}
-                    onChange={(event) =>
-                      setCrop((current) =>
-                        current
-                          ? {
-                              ...current,
-                              y: Number(
                                 event.target.value
                               ),
                             }

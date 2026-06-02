@@ -13,6 +13,7 @@ interface ArtworkCardProps {
   category: string;
   artistUsername?: string;
   artistName?: string;
+  artistAvatar?: string;
   likesCount?: number;
   isLiked?: boolean;
   isSaved?: boolean;
@@ -25,6 +26,7 @@ export default function ArtworkCard({
   category,
   artistUsername,
   artistName,
+  artistAvatar,
   likesCount = 0,
   isLiked = false,
   isSaved = false,
@@ -76,6 +78,7 @@ export default function ArtworkCard({
             category,
             artistName,
             artistUsername,
+            artistAvatar,
             likesCount: count,
             isLiked: liked,
             isSaved: saved,
