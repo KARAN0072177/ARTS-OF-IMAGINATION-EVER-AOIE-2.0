@@ -62,7 +62,7 @@ export default function SearchBar({
             setQuery(e.target.value)
           }
           placeholder="Search artists, artworks, categories..."
-          className="w-full rounded-lg border border-slate-300 bg-white py-3 pl-10 pr-10 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-cyan-600 focus:ring-4 focus:ring-cyan-100"
+          className="w-full rounded-full border border-slate-300 bg-slate-50 py-3 pl-10 pr-10 text-sm font-medium text-slate-950 outline-none transition placeholder:font-normal placeholder:text-slate-400 focus:border-cyan-600 focus:bg-white focus:ring-4 focus:ring-cyan-100"
         />
 
         {query && (
@@ -70,7 +70,7 @@ export default function SearchBar({
             type="button"
             onClick={handleClear}
             aria-label="Clear search"
-            className="absolute right-2 top-1/2 rounded-md p-1.5 text-slate-400 transition -translate-y-1/2 hover:bg-slate-100 hover:text-slate-700"
+            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
           >
             <X size={16} />
           </button>
@@ -79,7 +79,7 @@ export default function SearchBar({
 
       <button
         type="submit"
-        className="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+        className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
       >
         <Search size={16} />
         Search
