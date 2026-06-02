@@ -1,8 +1,13 @@
 import {
   PutObjectCommand,
 } from "@aws-sdk/client-s3";
+import { getServerSession } from "next-auth";
 
+import { authOptions } from "@/lib/auth";
 import { s3Client } from "@/lib/aws";
+import { connectDB } from "@/lib/db";
+
+import User from "@/models/User";
 
 import crypto from "crypto";
 
@@ -10,6 +15,47 @@ export async function POST(
   req: Request
 ) {
   try {
+    const session =
+      await getServerSession(authOptions);
+
+    if (!session?.user?.id) {
+      return Response.json(
+        {
+          success: false,
+          message: "Unauthorized",
+        },
+        { status: 401 }
+      );
+    }
+
+    await connectDB();
+
+    const user =
+      await User.findById(
+        session.user.id
+      ).select("role");
+
+    if (!user) {
+      return Response.json(
+        {
+          success: false,
+          message: "User not found",
+        },
+        { status: 404 }
+      );
+    }
+
+    if (user.role !== "artist") {
+      return Response.json(
+        {
+          success: false,
+          message:
+            "Activate your artist account before uploading images",
+        },
+        { status: 403 }
+      );
+    }
+
     const formData =
       await req.formData();
 
