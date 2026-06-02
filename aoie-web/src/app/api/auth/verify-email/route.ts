@@ -4,6 +4,8 @@ import User from "@/models/User";
 import { redirect } from "next/navigation";
 
 export async function GET(req: Request) {
+  let redirectPath = "";
+
   try {
     await connectDB();
 
@@ -12,48 +14,38 @@ export async function GET(req: Request) {
     const token = searchParams.get("token");
 
     if (!token) {
-      return Response.json(
-        {
-          success: false,
-          message: "Invalid token",
-        },
-        { status: 400 }
-      );
+      redirectPath =
+        "/verify-email?status=invalid";
+    } else {
+      const user = await User.findOne({
+        verificationToken: token,
+      });
+
+      if (!user) {
+        redirectPath =
+          "/verify-email?status=invalid";
+      } else if (
+        !user.verificationTokenExpiry ||
+        user.verificationTokenExpiry <
+          new Date()
+      ) {
+        redirectPath =
+          "/verify-email?status=expired";
+      } else {
+        user.isVerified = true;
+
+        user.verificationToken =
+          undefined;
+        user.verificationTokenExpiry =
+          undefined;
+
+        await user.save();
+
+        redirectPath = `/verify-email?status=success&email=${encodeURIComponent(
+          user.email
+        )}`;
+      }
     }
-
-    const user = await User.findOne({
-      verificationToken: token,
-    });
-
-    if (!user) {
-      return Response.json(
-        {
-          success: false,
-          message: "Verification token not found",
-        },
-        { status: 404 }
-      );
-    }
-
-    if (
-      !user.verificationTokenExpiry ||
-      user.verificationTokenExpiry < new Date()
-    ) {
-      return Response.json(
-        {
-          success: false,
-          message: "Verification token expired",
-        },
-        { status: 400 }
-      );
-    }
-
-    user.isVerified = true;
-
-    user.verificationToken = undefined;
-    user.verificationTokenExpiry = undefined;
-
-    await user.save();
 
   } catch (error) {
     console.error(error);
@@ -67,5 +59,5 @@ export async function GET(req: Request) {
     );
   }
 
-  redirect("/login");
+  redirect(redirectPath || "/login");
 }

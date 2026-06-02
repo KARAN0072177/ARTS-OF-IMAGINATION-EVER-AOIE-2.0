@@ -1,8 +1,13 @@
 "use client";
 
+import {
+  ArrowRight,
+  CheckCircle2,
+  MailCheck,
+} from "lucide-react";
 import Link from "next/link";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface RegisterResponse {
   success: boolean;
@@ -19,6 +24,74 @@ export default function RegisterForm() {
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [
+    verificationEmail,
+    setVerificationEmail,
+  ] = useState("");
+  const [
+    verificationComplete,
+    setVerificationComplete,
+  ] = useState(false);
+
+  useEffect(() => {
+    if (!verificationEmail) {
+      return;
+    }
+
+    const handleVerified = (
+      event: StorageEvent
+    ) => {
+      if (
+        event.key !== "aoie-email-verified" ||
+        !event.newValue
+      ) {
+        return;
+      }
+
+      try {
+        const payload = JSON.parse(
+          event.newValue
+        ) as {
+          email?: string;
+        };
+
+        if (
+          payload.email?.toLowerCase() ===
+          verificationEmail.toLowerCase()
+        ) {
+          setVerificationComplete(true);
+        }
+      } catch {
+        return;
+      }
+    };
+
+    const existingValue =
+      localStorage.getItem(
+        "aoie-email-verified"
+      );
+
+    if (existingValue) {
+      handleVerified(
+        new StorageEvent("storage", {
+          key: "aoie-email-verified",
+          newValue: existingValue,
+        })
+      );
+    }
+
+    window.addEventListener(
+      "storage",
+      handleVerified
+    );
+
+    return () => {
+      window.removeEventListener(
+        "storage",
+        handleVerified
+      );
+    };
+  }, [verificationEmail]);
 
   const handleSubmit = async (
     e: React.FormEvent<HTMLFormElement>
@@ -65,6 +138,7 @@ export default function RegisterForm() {
       }
 
       setSuccess(data.message);
+      setVerificationEmail(email.toLowerCase());
 
       setUsername("");
       setEmail("");
@@ -80,6 +154,119 @@ export default function RegisterForm() {
       setLoading(false);
     }
   };
+
+  if (verificationEmail) {
+    if (verificationComplete) {
+      return (
+        <div className="w-full max-w-md text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-700">
+            <CheckCircle2 size={32} />
+          </div>
+
+          <h2 className="mt-6 text-3xl font-semibold text-slate-950">
+            Verification completed
+          </h2>
+
+          <p className="mt-3 text-sm leading-6 text-slate-600">
+            Your email{" "}
+            <span className="font-semibold text-slate-950">
+              {verificationEmail}
+            </span>{" "}
+            has been verified successfully.
+            You can now sign in to AOIE.
+          </p>
+
+          <div className="mt-6 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-left">
+            <div className="flex gap-3">
+              <CheckCircle2
+                size={18}
+                className="mt-0.5 shrink-0 text-emerald-700"
+              />
+              <div>
+                <p className="text-sm font-semibold text-slate-950">
+                  Account ready
+                </p>
+                <p className="mt-1 text-sm leading-6 text-slate-600">
+                  This registration step is
+                  complete. Sign in and start
+                  exploring the gallery.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <Link
+            href="/login"
+            className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-md bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
+          >
+            Go to sign in
+            <ArrowRight size={16} />
+          </Link>
+        </div>
+      );
+    }
+
+    return (
+      <div className="w-full max-w-md text-center">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-cyan-50 text-cyan-700">
+          <MailCheck size={30} />
+        </div>
+
+        <h2 className="mt-6 text-3xl font-semibold text-slate-950">
+          Verification email sent
+        </h2>
+
+        <p className="mt-3 text-sm leading-6 text-slate-600">
+          We sent a verification link to{" "}
+          <span className="font-semibold text-slate-950">
+            {verificationEmail}
+          </span>
+          . Open that email and click the
+          verification button to activate
+          your AOIE account.
+        </p>
+
+        <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4 text-left">
+          <div className="flex gap-3">
+            <CheckCircle2
+              size={18}
+              className="mt-0.5 shrink-0 text-cyan-700"
+            />
+            <div>
+              <p className="text-sm font-semibold text-slate-950">
+                Next step
+              </p>
+              <p className="mt-1 text-sm leading-6 text-slate-600">
+                Keep this tab open, verify
+                your email in the new tab,
+                then come back and sign in.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <Link
+          href="/login"
+          className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-md bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
+        >
+          Go to sign in
+          <ArrowRight size={16} />
+        </Link>
+
+        <button
+          type="button"
+          onClick={() => {
+            setVerificationEmail("");
+            setVerificationComplete(false);
+            setSuccess("");
+          }}
+          className="mt-4 text-sm font-semibold text-cyan-700 transition hover:text-cyan-800"
+        >
+          Use a different email
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-md">

@@ -76,8 +76,9 @@ export async function POST(req: Request) {
     return Response.json(
       {
         success: true,
+        email: user.email,
         message:
-          "Verification email sent successfully",
+          "Verification email sent. Please check your inbox.",
       },
       { status: 201 }
     );
