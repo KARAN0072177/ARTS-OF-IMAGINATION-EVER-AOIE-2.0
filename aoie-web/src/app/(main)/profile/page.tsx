@@ -1,7 +1,12 @@
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Bookmark, Heart } from "lucide-react";
+import {
+  Bookmark,
+  Heart,
+  Mail,
+} from "lucide-react";
+import { FcGoogle } from "react-icons/fc";
 
 import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
@@ -9,6 +14,7 @@ import Follow from "@/models/Follow";
 import Like from "@/models/Like";
 import Save from "@/models/Save";
 import User from "@/models/User";
+import LogoutButton from "@/components/auth/LogoutButton";
 import BecomeArtistButton from "@/components/profile/BecomeArtistButton";
 import FollowStats from "@/components/profile/FollowStats";
 
@@ -31,7 +37,7 @@ export default async function ProfilePage() {
 
   const user = await User.findById(session.user.id)
     .select(
-      "username email role isVerified usernameSetupRequired createdAt updatedAt"
+      "username email role isVerified authProviders usernameSetupRequired createdAt updatedAt"
     )
     .lean();
 
@@ -48,6 +54,18 @@ export default async function ProfilePage() {
 
   const username =
     user.username || "AOIE User";
+  const loginProvider =
+    session.user.loginProvider === "google"
+      ? "google"
+      : "email";
+  const loginProviderLabel =
+    loginProvider === "google"
+      ? "Google"
+      : "Email";
+  const connectedProviders =
+    user.authProviders?.length > 0
+      ? user.authProviders
+      : ["credentials"];
 
   const details = [
     ["Username", username],
@@ -119,6 +137,64 @@ export default async function ProfilePage() {
             </span>
           </div>
 
+          <div className="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+              Current login
+            </p>
+
+            <div className="mt-3 flex items-center gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm">
+                {loginProvider ===
+                "google" ? (
+                  <FcGoogle size={22} />
+                ) : (
+                  <Mail
+                    size={19}
+                    className="text-slate-700"
+                  />
+                )}
+              </span>
+
+              <div>
+                <p className="text-sm font-semibold text-slate-950">
+                  {loginProviderLabel}
+                </p>
+                <p className="text-xs text-slate-500">
+                  Used for this session
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              {connectedProviders.map(
+                (provider) => {
+                  const isGoogle =
+                    provider === "google";
+                  const label = isGoogle
+                    ? "Google linked"
+                    : "Email linked";
+
+                  return (
+                    <span
+                      key={provider}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600 ring-1 ring-slate-200"
+                    >
+                      {isGoogle ? (
+                        <FcGoogle size={14} />
+                      ) : (
+                        <Mail
+                          size={13}
+                          className="text-slate-500"
+                        />
+                      )}
+                      {label}
+                    </span>
+                  );
+                }
+              )}
+            </div>
+          </div>
+
           <div className="mt-5">
             <FollowStats
               userId={user._id.toString()}
@@ -178,6 +254,10 @@ export default async function ProfilePage() {
               Artist account active
             </div>
           )}
+
+          <div className="mt-4 border-t border-slate-200 pt-4">
+            <LogoutButton variant="full" />
+          </div>
         </aside>
 
         <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">

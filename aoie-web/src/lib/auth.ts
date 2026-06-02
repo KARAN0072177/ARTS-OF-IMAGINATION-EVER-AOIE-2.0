@@ -13,6 +13,7 @@ declare module "next-auth" {
     username?: string;
     role: string;
     usernameSetupRequired?: boolean;
+    loginProvider?: string;
   }
   interface Session {
     user: User & {
@@ -20,6 +21,7 @@ declare module "next-auth" {
       username?: string;
       role: string;
       usernameSetupRequired?: boolean;
+      loginProvider?: string;
     };
   }
 }
@@ -30,6 +32,7 @@ declare module "next-auth/jwt" {
     username?: string;
     role: string;
     usernameSetupRequired?: boolean;
+    loginProvider?: string;
   }
 }
 
@@ -201,13 +204,20 @@ export const authOptions: AuthOptions = {
       return true;
     },
 
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       if (user) {
         token.id = user.id;
         token.username = user.username;
         token.role = user.role;
         token.usernameSetupRequired =
           !!user.usernameSetupRequired;
+        token.loginProvider =
+          account?.provider ===
+          "credentials"
+            ? "email"
+            : account?.provider ||
+              token.loginProvider ||
+              "email";
       } else if (token.id) {
         await connectDB();
 
@@ -246,6 +256,11 @@ export const authOptions: AuthOptions = {
 
         session.user.usernameSetupRequired =
           !!token.usernameSetupRequired;
+
+        session.user.loginProvider =
+          token.loginProvider as
+            | string
+            | undefined;
       }
 
       return session;
