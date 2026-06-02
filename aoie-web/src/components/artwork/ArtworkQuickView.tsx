@@ -15,6 +15,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import CollectionPicker from "@/components/artwork/CollectionPicker";
+
 interface Recommendation {
   id: string;
   title: string;
@@ -70,7 +72,7 @@ export default function ArtworkQuickView({
   );
   const [isSavingLike, setIsSavingLike] =
     useState(false);
-  const [isSavingArtwork, setIsSavingArtwork] =
+  const [collectionPickerOpen, setCollectionPickerOpen] =
     useState(false);
   const [shareStatus, setShareStatus] =
     useState<"idle" | "copied">("idle");
@@ -261,51 +263,6 @@ export default function ArtworkQuickView({
     }
   };
 
-  const handleSave = async () => {
-    if (isSavingArtwork) {
-      return;
-    }
-
-    const previousSaved = saved;
-    const nextSaved = !previousSaved;
-
-    setIsSavingArtwork(true);
-    setSaved(nextSaved);
-    onSaveChange?.(nextSaved);
-
-    try {
-      const response = await fetch(
-        `/api/artworks/${artwork.id}/save`,
-        {
-          method: "POST",
-        }
-      );
-
-      if (response.status === 401) {
-        router.push("/login");
-        return;
-      }
-
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        throw new Error(
-          data.message ||
-            "Unable to update save"
-        );
-      }
-
-      setSaved(data.saved);
-      onSaveChange?.(data.saved);
-    } catch (error) {
-      console.error(error);
-      setSaved(previousSaved);
-      onSaveChange?.(previousSaved);
-    } finally {
-      setIsSavingArtwork(false);
-    }
-  };
-
   const getDownloadFileName = () => {
     const safeTitle = artwork.title
       .trim()
@@ -473,15 +430,12 @@ export default function ArtworkQuickView({
 
                   <button
                     type="button"
-                    onClick={handleSave}
-                    disabled={isSavingArtwork}
-                    aria-pressed={saved}
-                    aria-label={
-                      saved
-                        ? "Remove saved artwork"
-                        : "Save artwork"
+                    onClick={() =>
+                      setCollectionPickerOpen(true)
                     }
-                    className={`inline-flex w-14 shrink-0 items-center justify-center rounded-lg border text-slate-700 transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                    aria-pressed={saved}
+                    aria-label="Save to collection"
+                    className={`inline-flex w-14 shrink-0 items-center justify-center rounded-lg border text-slate-700 transition ${
                       saved
                         ? "border-cyan-200 bg-cyan-50 text-cyan-700"
                         : "border-slate-200 bg-white hover:bg-slate-50"
@@ -601,6 +555,19 @@ export default function ArtworkQuickView({
           </aside>
         </div>
       </div>
+
+      {collectionPickerOpen && (
+        <CollectionPicker
+          artworkId={artwork.id}
+          onClose={() =>
+            setCollectionPickerOpen(false)
+          }
+          onSavedChange={(nextSaved) => {
+            setSaved(nextSaved);
+            onSaveChange?.(nextSaved);
+          }}
+        />
+      )}
     </div>
   );
 }

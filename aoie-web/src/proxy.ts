@@ -44,6 +44,7 @@ export const config = {
     "/settings/:path*",
     "/upload/:path*",
     "/saved/:path*",
+    "/collections/:path*",
     "/liked/:path*",
     "/complete-profile/:path*",
   ],
