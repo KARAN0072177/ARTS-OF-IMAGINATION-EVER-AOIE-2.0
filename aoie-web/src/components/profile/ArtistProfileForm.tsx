@@ -424,16 +424,16 @@ export default function ArtistProfileForm({
     <>
       <form
         onSubmit={handleSubmit}
-        className="rounded-lg border border-slate-200 bg-white shadow-sm"
+        className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
       >
-        <div className="border-b border-slate-200 px-6 py-5">
+        <div className="border-b border-slate-200 bg-slate-50/70 px-6 py-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <h2 className="text-base font-semibold text-slate-950">
-                Artist profile
+              <h2 className="text-lg font-semibold text-slate-950">
+                Artist studio
               </h2>
               <p className="mt-1 text-sm text-slate-500">
-                Edit the public details
+                Shape the public identity
                 visitors see on your artist
                 page.
               </p>
@@ -454,8 +454,8 @@ export default function ArtistProfileForm({
         </div>
 
         <div className="p-6">
-          <div className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
-            <div className="group relative h-48 bg-slate-200">
+          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div className="group relative h-56 bg-slate-200">
               {form.banner ? (
                 <img
                   src={form.banner}
@@ -463,8 +463,8 @@ export default function ArtistProfileForm({
                   className="h-full w-full object-cover"
                 />
               ) : (
-                <div className="flex h-full items-center justify-center text-sm font-medium text-slate-500">
-                  Add a banner image
+                <div className="flex h-full items-center justify-center bg-slate-100 text-sm font-medium text-slate-500">
+                  Add a wide banner image
                 </div>
               )}
 
@@ -474,7 +474,7 @@ export default function ArtistProfileForm({
                   bannerInputRef.current?.click()
                 }
                 disabled={!!uploadingField}
-                className="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-800 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                className="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/95 text-slate-800 shadow-sm ring-1 ring-slate-200 transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
                 aria-label="Edit banner image"
               >
                 {uploadingField ===
@@ -504,9 +504,9 @@ export default function ArtistProfileForm({
               />
             </div>
 
-            <div className="-mt-12 flex items-end gap-4 px-6 pb-6">
-              <div className="group relative">
-                <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-slate-950 text-3xl font-semibold text-white shadow-sm">
+            <div className="relative flex flex-col gap-4 bg-white px-6 pb-6 sm:flex-row sm:items-end">
+              <div className="group relative -mt-14 shrink-0">
+                <div className="flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-slate-950 text-4xl font-semibold text-white shadow-sm">
                   {form.avatar ? (
                     <img
                       src={form.avatar}
@@ -524,7 +524,7 @@ export default function ArtistProfileForm({
                     avatarInputRef.current?.click()
                   }
                   disabled={!!uploadingField}
-                  className="absolute bottom-1 right-1 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-slate-800 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="absolute bottom-2 right-2 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-slate-800 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
                   aria-label="Edit profile photo"
                 >
                   {uploadingField ===
@@ -554,23 +554,27 @@ export default function ArtistProfileForm({
                 />
               </div>
 
-              <div className="min-w-0 pb-2">
+              <div className="min-w-0 sm:pb-2">
                 <p className="truncate text-xl font-semibold text-slate-950">
                   {displayName}
                 </p>
                 <p className="mt-1 text-sm text-slate-500">
                   @{username}
                 </p>
+                <p className="mt-2 text-xs font-medium text-slate-500">
+                  Use the pen buttons to
+                  upload and crop media.
+                </p>
               </div>
             </div>
           </div>
 
-          <div className="mt-6 grid gap-4 sm:grid-cols-2">
+          <div className="mt-6 grid gap-5 sm:grid-cols-2">
             <label className="block">
               <span className="text-sm font-semibold text-slate-700">
                 Display name
               </span>
-              <div className="mt-2 flex items-center gap-2 rounded-md border border-slate-300 bg-white px-3 focus-within:border-cyan-600 focus-within:ring-4 focus-within:ring-cyan-100">
+              <div className="mt-2 flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 transition focus-within:border-cyan-500 focus-within:bg-white focus-within:ring-4 focus-within:ring-cyan-100">
                 <UserRound
                   size={17}
                   className="text-slate-400"
@@ -596,7 +600,7 @@ export default function ArtistProfileForm({
               <span className="text-sm font-semibold text-slate-700">
                 Location
               </span>
-              <div className="mt-2 flex items-center gap-2 rounded-md border border-slate-300 bg-white px-3 focus-within:border-cyan-600 focus-within:ring-4 focus-within:ring-cyan-100">
+              <div className="mt-2 flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 transition focus-within:border-cyan-500 focus-within:bg-white focus-within:ring-4 focus-within:ring-cyan-100">
                 <MapPin
                   size={17}
                   className="text-slate-400"
@@ -630,7 +634,7 @@ export default function ArtistProfileForm({
                 }
                 maxLength={500}
                 rows={4}
-                className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm outline-none transition focus:border-cyan-600 focus:ring-4 focus:ring-cyan-100"
+                className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-cyan-500 focus:bg-white focus:ring-4 focus:ring-cyan-100"
                 placeholder="Tell viewers about your style, process, or inspiration."
               />
               <span className="mt-1 block text-xs text-slate-500">
@@ -643,7 +647,7 @@ export default function ArtistProfileForm({
               <span className="text-sm font-semibold text-slate-700">
                 Website
               </span>
-              <div className="mt-2 flex items-center gap-2 rounded-md border border-slate-300 bg-white px-3 focus-within:border-cyan-600 focus-within:ring-4 focus-within:ring-cyan-100">
+              <div className="mt-2 flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 transition focus-within:border-cyan-500 focus-within:bg-white focus-within:ring-4 focus-within:ring-cyan-100">
                 <LinkIcon
                   size={17}
                   className="text-slate-400"
@@ -675,25 +679,31 @@ export default function ArtistProfileForm({
             </div>
           )}
 
-          <button
-            type="submit"
-            disabled={
-              saving || !!uploadingField
-            }
-            className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-md bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {saving ? (
-              <Loader2
-                size={17}
-                className="animate-spin"
-              />
-            ) : (
-              <Save size={17} />
-            )}
-            {saving
-              ? "Saving profile"
-              : "Save artist profile"}
-          </button>
+          <div className="mt-6 flex flex-col gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-slate-500">
+              Changes are private until you
+              save them.
+            </p>
+            <button
+              type="submit"
+              disabled={
+                saving || !!uploadingField
+              }
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {saving ? (
+                <Loader2
+                  size={17}
+                  className="animate-spin"
+                />
+              ) : (
+                <Save size={17} />
+              )}
+              {saving
+                ? "Saving profile"
+                : "Save profile"}
+            </button>
+          </div>
         </div>
       </form>
 
