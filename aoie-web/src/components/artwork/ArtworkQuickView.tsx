@@ -22,27 +22,30 @@ interface Recommendation {
   title: string;
   imageUrl: string;
   category: string;
+  artistName?: string;
+  artistUsername?: string;
   likesCount: number;
+  isLiked: boolean;
+  isSaved: boolean;
 }
 
+type QuickViewArtwork = Recommendation;
+
 interface ArtworkQuickViewProps {
-  artwork: {
-    id: string;
-    title: string;
-    imageUrl: string;
-    category: string;
-    artistName?: string;
-    artistUsername?: string;
-    likesCount: number;
-    isLiked: boolean;
-    isSaved: boolean;
-  };
+  artwork: QuickViewArtwork;
   hasPrevious?: boolean;
   hasNext?: boolean;
   onPrevious?: () => void;
   onNext?: () => void;
-  onLikeChange: (liked: boolean, count: number) => void;
-  onSaveChange?: (saved: boolean) => void;
+  onLikeChange: (
+    liked: boolean,
+    count: number,
+    artworkId?: string
+  ) => void;
+  onSaveChange?: (
+    saved: boolean,
+    artworkId?: string
+  ) => void;
   onClose: () => void;
 }
 
@@ -60,6 +63,8 @@ export default function ArtworkQuickView({
 
   const [recommendations, setRecommendations] =
     useState<Recommendation[]>([]);
+  const [activeArtwork, setActiveArtwork] =
+    useState<QuickViewArtwork>(artwork);
   const [loading, setLoading] =
     useState(true);
   const [liked, setLiked] = useState(
@@ -93,12 +98,12 @@ export default function ArtworkQuickView({
               "application/json",
           },
           body: JSON.stringify({
-            artworkId: artwork.id,
+            artworkId: activeArtwork.id,
           }),
         });
 
         const response = await fetch(
-          `/api/recommendations?artworkId=${artwork.id}`
+          `/api/recommendations?artworkId=${activeArtwork.id}`
         );
         const data = await response.json();
 
@@ -121,7 +126,7 @@ export default function ArtworkQuickView({
     return () => {
       isMounted = false;
     };
-  }, [artwork.id]);
+  }, [activeArtwork.id]);
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -183,11 +188,15 @@ export default function ArtworkQuickView({
     setIsSavingLike(true);
     setLiked(nextLiked);
     setLikesCount(nextCount);
-    onLikeChange(nextLiked, nextCount);
+    onLikeChange(
+      nextLiked,
+      nextCount,
+      activeArtwork.id
+    );
 
     try {
       const response = await fetch(
-        `/api/artworks/${artwork.id}/like`,
+        `/api/artworks/${activeArtwork.id}/like`,
         {
           method: "POST",
         }
@@ -211,14 +220,16 @@ export default function ArtworkQuickView({
       setLikesCount(data.likesCount);
       onLikeChange(
         data.liked,
-        data.likesCount
+        data.likesCount,
+        activeArtwork.id
       );
     } catch {
       setLiked(previousLiked);
       setLikesCount(previousCount);
       onLikeChange(
         previousLiked,
-        previousCount
+        previousCount,
+        activeArtwork.id
       );
     } finally {
       setIsSavingLike(false);
@@ -226,7 +237,7 @@ export default function ArtworkQuickView({
   };
 
   const handleShare = async () => {
-    const artworkPath = `/artwork/${artwork.id}`;
+    const artworkPath = `/artwork/${activeArtwork.id}`;
     const shareUrl =
       typeof window !== "undefined"
         ? `${window.location.origin}${artworkPath}`
@@ -235,8 +246,8 @@ export default function ArtworkQuickView({
     try {
       if (navigator.share) {
         await navigator.share({
-          title: artwork.title,
-          text: `Check out "${artwork.title}" on AOIE 2.0`,
+          title: activeArtwork.title,
+          text: `Check out "${activeArtwork.title}" on AOIE 2.0`,
           url: shareUrl,
         });
 
@@ -264,7 +275,7 @@ export default function ArtworkQuickView({
   };
 
   const getDownloadFileName = () => {
-    const safeTitle = artwork.title
+    const safeTitle = activeArtwork.title
       .trim()
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
@@ -282,7 +293,7 @@ export default function ArtworkQuickView({
 
     try {
       const response = await fetch(
-        artwork.imageUrl
+        activeArtwork.imageUrl
       );
 
       if (!response.ok) {
@@ -307,13 +318,26 @@ export default function ArtworkQuickView({
     } catch (error) {
       console.error(error);
       window.open(
-        artwork.imageUrl,
+        activeArtwork.imageUrl,
         "_blank",
         "noopener,noreferrer"
       );
     } finally {
       setIsDownloading(false);
     }
+  };
+
+  const openRecommendation = (
+    item: Recommendation
+  ) => {
+    setLoading(true);
+    setRecommendations([]);
+    setActiveArtwork(item);
+    setLiked(item.isLiked);
+    setLikesCount(item.likesCount);
+    setSaved(item.isSaved);
+    setImageLoaded(false);
+    setShareStatus("idle");
   };
 
   return (
@@ -367,8 +391,8 @@ export default function ArtworkQuickView({
             )}
 
             <img
-              src={artwork.imageUrl}
-              alt={artwork.title}
+              src={activeArtwork.imageUrl}
+              alt={activeArtwork.title}
               decoding="async"
               onLoad={() =>
                 setImageLoaded(true)
@@ -386,7 +410,7 @@ export default function ArtworkQuickView({
               <div>
                 <div className="mb-3 flex flex-wrap items-center gap-2">
                 <span className="rounded-full bg-cyan-50 px-3 py-1 text-xs font-semibold text-cyan-700">
-                  {artwork.category}
+                  {activeArtwork.category}
                 </span>
                   {likesCount > 0 && (
                     <span className="inline-flex items-center gap-1 text-sm font-semibold text-slate-600">
@@ -404,13 +428,13 @@ export default function ArtworkQuickView({
                 </div>
 
                 <h2 className="text-2xl font-semibold leading-tight text-slate-950">
-                  {artwork.title}
+                  {activeArtwork.title}
                 </h2>
 
                 <div className="mt-4 flex items-stretch gap-2">
-                  {artwork.artistUsername && (
+                  {activeArtwork.artistUsername && (
                     <Link
-                      href={`/artist/${artwork.artistUsername}`}
+                      href={`/artist/${activeArtwork.artistUsername}`}
                       className="flex min-w-0 flex-1 items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
                     >
                       <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-950 text-white">
@@ -418,11 +442,11 @@ export default function ArtworkQuickView({
                       </span>
                       <span className="min-w-0">
                         <span className="block truncate">
-                          {artwork.artistName ||
-                            artwork.artistUsername}
+                          {activeArtwork.artistName ||
+                            activeArtwork.artistUsername}
                         </span>
                         <span className="block text-xs font-medium text-slate-500">
-                          @{artwork.artistUsername}
+                          @{activeArtwork.artistUsername}
                         </span>
                       </span>
                     </Link>
@@ -500,7 +524,7 @@ export default function ArtworkQuickView({
                 </button>
 
                 <Link
-                  href={`/artwork/${artwork.id}`}
+                  href={`/artwork/${activeArtwork.id}`}
                   className="inline-flex items-center justify-center gap-2 rounded-md border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
                 >
                   Open
@@ -533,10 +557,14 @@ export default function ArtworkQuickView({
                   <div className="columns-2 gap-3">
                     {recommendations.map(
                       (item) => (
-                        <Link
+                        <button
                           key={item.id}
-                          href={`/artwork/${item.id}`}
-                          className="group mb-3 block break-inside-avoid overflow-hidden rounded-lg bg-slate-100 transition hover:shadow-md"
+                          type="button"
+                          onClick={() =>
+                            openRecommendation(item)
+                          }
+                          className="group mb-3 block w-full break-inside-avoid overflow-hidden rounded-lg bg-slate-100 text-left transition hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-600 focus-visible:ring-offset-2"
+                          aria-label={`Open ${item.title}`}
                         >
                           <img
                             src={item.imageUrl}
@@ -545,7 +573,7 @@ export default function ArtworkQuickView({
                             decoding="async"
                             className="h-auto w-full transition duration-300 group-hover:scale-[1.02]"
                           />
-                        </Link>
+                        </button>
                       )
                     )}
                   </div>
@@ -558,13 +586,16 @@ export default function ArtworkQuickView({
 
       {collectionPickerOpen && (
         <CollectionPicker
-          artworkId={artwork.id}
+          artworkId={activeArtwork.id}
           onClose={() =>
             setCollectionPickerOpen(false)
           }
           onSavedChange={(nextSaved) => {
             setSaved(nextSaved);
-            onSaveChange?.(nextSaved);
+            onSaveChange?.(
+              nextSaved,
+              activeArtwork.id
+            );
           }}
         />
       )}

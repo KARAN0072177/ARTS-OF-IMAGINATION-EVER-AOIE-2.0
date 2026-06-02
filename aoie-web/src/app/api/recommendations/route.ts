@@ -5,10 +5,18 @@ import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 
 import Artwork from "@/models/Artwork";
+import Like from "@/models/Like";
+import Save from "@/models/Save";
 import UserInteraction from "@/models/UserInteraction";
 
 interface RecommendationArtwork {
   _id: Types.ObjectId;
+  artist?: {
+    username?: string;
+    artistProfile?: {
+      displayName?: string;
+    };
+  };
   title: string;
   imageUrl: string;
   category: string;
@@ -45,14 +53,27 @@ function getRecentBoost(createdAt: Date) {
 }
 
 function toRecommendation(
-  artwork: RecommendationArtwork
+  artwork: RecommendationArtwork,
+  likedSet: Set<string>,
+  savedSet: Set<string>
 ) {
+  const id = artwork._id.toString();
+
   return {
-    id: artwork._id.toString(),
+    id,
     title: artwork.title,
     imageUrl: artwork.imageUrl,
     category: artwork.category,
     likesCount: artwork.likesCount || 0,
+    artistUsername:
+      artwork.artist?.username || "",
+    artistName:
+      artwork.artist?.artistProfile
+        ?.displayName ||
+      artwork.artist?.username ||
+      "",
+    isLiked: likedSet.has(id),
+    isSaved: savedSet.has(id),
   };
 }
 
@@ -233,7 +254,11 @@ export async function GET(req: Request) {
       (await Promise.all([
         Artwork.find(personalizedQuery)
           .select(
-            "title imageUrl category tags likesCount createdAt"
+            "artist title imageUrl category tags likesCount createdAt"
+          )
+          .populate(
+            "artist",
+            "username artistProfile.displayName"
           )
           .sort({ createdAt: -1 })
           .limit(80)
@@ -241,7 +266,11 @@ export async function GET(req: Request) {
 
         Artwork.find(exploreQuery)
           .select(
-            "title imageUrl category tags likesCount createdAt"
+            "artist title imageUrl category tags likesCount createdAt"
+          )
+          .populate(
+            "artist",
+            "username artistProfile.displayName"
           )
           .sort({ createdAt: -1 })
           .limit(50)
@@ -252,7 +281,11 @@ export async function GET(req: Request) {
           ...excludeQuery,
         })
           .select(
-            "title imageUrl category tags likesCount createdAt"
+            "artist title imageUrl category tags likesCount createdAt"
+          )
+          .populate(
+            "artist",
+            "username artistProfile.displayName"
           )
           .sort({
             likesCount: -1,
@@ -360,11 +393,56 @@ export async function GET(req: Request) {
 
     addUnique(rank(popular, "popular"), 12);
 
-    const recommendations = Array.from(
+    const selectedArtworks = Array.from(
       selected.values()
-    )
-      .slice(0, 12)
-      .map(toRecommendation);
+    ).slice(0, 12);
+    const selectedIds =
+      selectedArtworks.map((artwork) =>
+        artwork._id.toString()
+      );
+
+    const [likedItems, savedItems] =
+      session?.user?.id &&
+      selectedIds.length > 0
+        ? await Promise.all([
+            Like.find({
+              user: session.user.id,
+              artwork: {
+                $in: selectedIds,
+              },
+            })
+              .select("artwork")
+              .lean(),
+            Save.find({
+              user: session.user.id,
+              artwork: {
+                $in: selectedIds,
+              },
+            })
+              .select("artwork")
+              .lean(),
+          ])
+        : [[], []];
+
+    const likedSet = new Set(
+      likedItems.map((item) =>
+        item.artwork.toString()
+      )
+    );
+    const savedSet = new Set(
+      savedItems.map((item) =>
+        item.artwork.toString()
+      )
+    );
+
+    const recommendations =
+      selectedArtworks.map((artwork) =>
+        toRecommendation(
+          artwork,
+          likedSet,
+          savedSet
+        )
+      );
 
     return Response.json({
       success: true,

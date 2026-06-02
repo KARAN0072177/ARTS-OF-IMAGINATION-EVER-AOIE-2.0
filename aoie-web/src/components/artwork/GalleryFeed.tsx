@@ -279,15 +279,19 @@ export default function GalleryFeed({
           }
           onLikeChange={(
             nextLiked,
-            nextCount
+            nextCount,
+            artworkId = openArtwork.id
           ) => {
-            updateArtwork(openArtwork.id, {
+            updateArtwork(artworkId, {
               isLiked: nextLiked,
               likesCount: nextCount,
             });
           }}
-          onSaveChange={(nextSaved) => {
-            updateArtwork(openArtwork.id, {
+          onSaveChange={(
+            nextSaved,
+            artworkId = openArtwork.id
+          ) => {
+            updateArtwork(artworkId, {
               isSaved: nextSaved,
             });
           }}
