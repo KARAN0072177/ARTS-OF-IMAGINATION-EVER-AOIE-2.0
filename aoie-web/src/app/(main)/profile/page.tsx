@@ -15,6 +15,7 @@ import Like from "@/models/Like";
 import Save from "@/models/Save";
 import User from "@/models/User";
 import LogoutButton from "@/components/auth/LogoutButton";
+import ArtistProfileForm from "@/components/profile/ArtistProfileForm";
 import BecomeArtistButton from "@/components/profile/BecomeArtistButton";
 import FollowStats from "@/components/profile/FollowStats";
 
@@ -24,6 +25,16 @@ function formatDate(date: Date) {
     month: "short",
     year: "numeric",
   }).format(date);
+}
+
+interface ArtistProfileData {
+  displayName?: string;
+  bio?: string;
+  website?: string;
+  location?: string;
+  avatar?: string;
+  banner?: string;
+  isArtistProfileComplete?: boolean;
 }
 
 export default async function ProfilePage() {
@@ -37,7 +48,7 @@ export default async function ProfilePage() {
 
   const user = await User.findById(session.user.id)
     .select(
-      "username email role isVerified authProviders usernameSetupRequired createdAt updatedAt"
+      "username email role isVerified authProviders usernameSetupRequired artistProfile createdAt updatedAt"
     )
     .lean();
 
@@ -54,6 +65,12 @@ export default async function ProfilePage() {
 
   const username =
     user.username || "AOIE User";
+  const artistProfile =
+    (user.artistProfile ||
+      {}) as ArtistProfileData;
+  const publicDisplayName =
+    artistProfile.displayName ||
+    username;
   const loginProvider =
     session.user.loginProvider === "google"
       ? "google"
@@ -113,15 +130,44 @@ export default async function ProfilePage() {
 
       <div className="grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
         <aside className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+          {user.role === "artist" && (
+            <div className="-mx-6 -mt-6 mb-6 overflow-hidden rounded-t-lg bg-slate-100">
+              <div className="h-32 bg-slate-200">
+                {artistProfile.banner && (
+                  <img
+                    src={artistProfile.banner}
+                    alt="Artist banner"
+                    className="h-full w-full object-cover"
+                  />
+                )}
+              </div>
+            </div>
+          )}
+
           <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-950 text-lg font-semibold text-white">
-              {username.slice(0, 1).toUpperCase()}
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-950 text-lg font-semibold text-white">
+              {artistProfile.avatar ? (
+                <img
+                  src={artistProfile.avatar}
+                  alt={publicDisplayName}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                publicDisplayName
+                  .slice(0, 1)
+                  .toUpperCase()
+              )}
             </div>
             <div>
               <h2 className="text-lg font-semibold text-slate-950">
-                {username}
+                {publicDisplayName}
               </h2>
-              <p className="mt-1 text-sm text-slate-600">{user.email}</p>
+              <p className="mt-1 text-sm text-slate-600">
+                @{username}
+              </p>
+              <p className="mt-1 text-sm text-slate-500">
+                {user.email}
+              </p>
             </div>
           </div>
 
@@ -260,26 +306,35 @@ export default async function ProfilePage() {
           </div>
         </aside>
 
-        <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-base font-semibold text-slate-950">
-            Basic details
-          </h2>
+        <div className="space-y-6">
+          {user.role === "artist" && (
+            <ArtistProfileForm
+              initialProfile={artistProfile}
+              username={username}
+            />
+          )}
 
-          <dl className="mt-5 divide-y divide-slate-200">
-            {details.map(([label, value]) => (
-              <div
-                key={label}
-                className="grid gap-1 py-4 sm:grid-cols-[180px_1fr] sm:gap-6"
-              >
-                <dt className="text-sm font-medium text-slate-500">
-                  {label}
-                </dt>
-                <dd className="text-sm font-semibold text-slate-950">
-                  {value}
-                </dd>
-              </div>
-            ))}
-          </dl>
+          <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 className="text-base font-semibold text-slate-950">
+              Basic details
+            </h2>
+
+            <dl className="mt-5 divide-y divide-slate-200">
+              {details.map(([label, value]) => (
+                <div
+                  key={label}
+                  className="grid gap-1 py-4 sm:grid-cols-[180px_1fr] sm:gap-6"
+                >
+                  <dt className="text-sm font-medium text-slate-500">
+                    {label}
+                  </dt>
+                  <dd className="text-sm font-semibold text-slate-950">
+                    {value}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </div>
         </div>
       </div>
     </section>

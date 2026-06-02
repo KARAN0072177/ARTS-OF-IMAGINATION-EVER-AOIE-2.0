@@ -1,6 +1,7 @@
 import { getServerSession } from "next-auth";
 import { Types } from "mongoose";
 import { notFound } from "next/navigation";
+import { ExternalLink, MapPin } from "lucide-react";
 
 import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
@@ -120,27 +121,44 @@ export default async function ArtistPage({
       save.artwork.toString()
     )
   );
+  const displayName =
+    artist.artistProfile?.displayName ||
+    artist.username;
+  const avatar =
+    artist.artistProfile?.avatar || "";
+  const banner =
+    artist.artistProfile?.banner || "";
 
   return (
     <section className="space-y-8">
-      {/* Banner */}
-
-      <div className="h-56 rounded-xl bg-slate-200" />
-
-      {/* Profile */}
+      <div className="h-56 overflow-hidden rounded-xl bg-slate-200">
+        {banner && (
+          <img
+            src={banner}
+            alt={`${displayName} banner`}
+            className="h-full w-full object-cover"
+          />
+        )}
+      </div>
 
       <div className="-mt-20 px-6">
-        <div className="flex h-32 w-32 items-center justify-center rounded-full border-4 border-white bg-slate-950 text-4xl font-bold text-white">
-          {artist.username
-            .charAt(0)
-            .toUpperCase()}
+        <div className="flex h-32 w-32 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-slate-950 text-4xl font-bold text-white shadow-sm">
+          {avatar ? (
+            <img
+              src={avatar}
+              alt={displayName}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            displayName
+              .charAt(0)
+              .toUpperCase()
+          )}
         </div>
 
         <div className="mt-4">
           <h1 className="text-3xl font-bold">
-            {artist.artistProfile
-              ?.displayName ||
-              artist.username}
+            {displayName}
           </h1>
 
           <p className="mt-1 text-slate-500">
@@ -164,8 +182,8 @@ export default async function ArtistPage({
 
           <div className="mt-4 flex flex-wrap gap-4 text-sm text-slate-500">
             {artist.artistProfile?.location && (
-              <span>
-                📍{" "}
+              <span className="inline-flex items-center gap-1.5">
+                <MapPin size={15} />
                 {
                   artist.artistProfile
                     .location
@@ -181,16 +199,15 @@ export default async function ArtistPage({
                 }
                 target="_blank"
                 rel="noreferrer"
-                className="text-blue-600 hover:underline"
+                className="inline-flex items-center gap-1.5 font-semibold text-cyan-700 hover:text-cyan-800"
               >
                 Website
+                <ExternalLink size={14} />
               </a>
             )}
           </div>
         </div>
       </div>
-
-      {/* Gallery */}
 
       <div>
         <h2 className="mb-6 text-2xl font-semibold">
