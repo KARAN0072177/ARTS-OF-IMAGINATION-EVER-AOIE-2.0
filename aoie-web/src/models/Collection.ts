@@ -11,6 +11,7 @@ export interface ICollection
   name: string;
   description: string;
   artworks: Types.ObjectId[];
+  coverArtwork?: Types.ObjectId | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -43,6 +44,12 @@ const CollectionSchema =
           ref: "Artwork",
         },
       ],
+
+      coverArtwork: {
+        type: Schema.Types.ObjectId,
+        ref: "Artwork",
+        default: null,
+      },
     },
     {
       timestamps: true,

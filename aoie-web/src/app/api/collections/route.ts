@@ -27,6 +27,7 @@ export async function GET() {
         user: session.user.id,
       })
         .select("name description artworks updatedAt")
+        .select("name description artworks coverArtwork updatedAt")
         .sort({ updatedAt: -1 })
         .lean();
 
@@ -45,6 +46,9 @@ export async function GET() {
           ).map((artwork) =>
             artwork.toString()
           ),
+          coverArtwork:
+            collection.coverArtwork?.toString() ||
+            null,
         })
       ),
     });
@@ -135,6 +139,7 @@ export async function POST(req: Request) {
             collection.description || "",
           count: 0,
           artworkIds: [],
+          coverArtwork: null,
         },
       },
       { status: 201 }

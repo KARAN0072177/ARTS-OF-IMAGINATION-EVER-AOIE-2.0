@@ -152,10 +152,15 @@ export async function DELETE(
       new URL(req.url);
     const artworkId =
       searchParams.get("artworkId") || "";
+    const clearAll =
+      searchParams.get("clear") === "all";
+    const keepSaved =
+      searchParams.get("keepSaved") === "true";
 
     if (
       !Types.ObjectId.isValid(id) ||
-      !Types.ObjectId.isValid(artworkId)
+      (!clearAll &&
+        !Types.ObjectId.isValid(artworkId))
     ) {
       return Response.json(
         {
@@ -168,17 +173,102 @@ export async function DELETE(
 
     await connectDB();
 
+    if (clearAll) {
+      const collection =
+        await Collection.findOneAndUpdate(
+          {
+            _id: id,
+            user: session.user.id,
+          },
+          {
+            $set: {
+              artworks: [],
+              coverArtwork: null,
+            },
+          }
+        );
+
+      if (!collection) {
+        return Response.json(
+          {
+            success: false,
+            message: "Collection not found",
+          },
+          { status: 404 }
+        );
+      }
+
+      if (!keepSaved) {
+        await Promise.all(
+          collection.artworks.map(
+            async (collectionArtworkId) => {
+              const stillInCollection =
+                await Collection.exists({
+                  user: session.user.id,
+                  artworks: collectionArtworkId,
+                });
+
+              if (!stillInCollection) {
+                await Save.deleteOne({
+                  user: session.user.id,
+                  artwork: collectionArtworkId,
+                });
+              }
+            }
+          )
+        );
+      }
+
+      return Response.json({
+        success: true,
+        saved: keepSaved,
+      });
+    }
+
+    const collection =
+      await Collection.findOne({
+        _id: id,
+        user: session.user.id,
+      }).select("coverArtwork");
+
+    if (!collection) {
+      return Response.json(
+        {
+          success: false,
+          message: "Collection not found",
+        },
+        { status: 404 }
+      );
+    }
+
+    const update: {
+      $pull: {
+        artworks: Types.ObjectId;
+      };
+      $set?: {
+        coverArtwork: null;
+      };
+    } = {
+      $pull: {
+        artworks: new Types.ObjectId(artworkId),
+      },
+    };
+
+    if (
+      collection.coverArtwork?.toString() ===
+      artworkId
+    ) {
+      update.$set = {
+        coverArtwork: null,
+      };
+    }
+
     await Collection.updateOne(
       {
         _id: id,
         user: session.user.id,
       },
-      {
-        $pull: {
-          artworks:
-            new Types.ObjectId(artworkId),
-        },
-      }
+      update
     );
 
     const stillInCollection =
@@ -187,7 +277,7 @@ export async function DELETE(
         artworks: artworkId,
       });
 
-    if (!stillInCollection) {
+    if (!stillInCollection && !keepSaved) {
       await Save.deleteOne({
         user: session.user.id,
         artwork: artworkId,

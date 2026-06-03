@@ -1,12 +1,12 @@
 import { getServerSession } from "next-auth";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft, Bookmark, FolderHeart, Images } from "lucide-react";
+import { ArrowLeft, FolderHeart, Images } from "lucide-react";
 import { Types } from "mongoose";
 
 import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
+import CollectionManager from "@/components/collections/CollectionManager";
 import Collection from "@/models/Collection";
 import Like from "@/models/Like";
 import "@/models/Artwork";
@@ -24,6 +24,7 @@ type RawCollection = {
   name?: string;
   description?: string;
   artworks?: Array<RawArtwork | null | undefined>;
+  coverArtwork?: Types.ObjectId | RawArtwork | null;
 };
 
 type RawLike = {
@@ -45,58 +46,29 @@ function isRawArtwork(
   return Boolean(artwork?._id && artwork.imageUrl);
 }
 
-function getArtworkId(artwork: Types.ObjectId | RawArtwork | null | undefined) {
+function getArtworkId(
+  artwork:
+    | Types.ObjectId
+    | RawArtwork
+    | string
+    | null
+    | undefined
+) {
   if (!artwork) return "";
+
+  if (typeof artwork === "string") {
+    return artwork;
+  }
 
   if (artwork instanceof Types.ObjectId) {
     return artwork.toString();
   }
 
-  return artwork._id.toString();
-}
+  if ("_id" in artwork && artwork._id) {
+    return artwork._id.toString();
+  }
 
-function CollectionArtworkCard({ artwork }: { artwork: ArtworkItem }) {
-  return (
-    <Link
-      href={`/artwork/${artwork.id}`}
-      className="group mb-5 block break-inside-avoid overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-cyan-200 hover:shadow-md"
-    >
-      <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
-        <Image
-          src={artwork.imageUrl}
-          alt={artwork.title}
-          fill
-          sizes="(min-width: 1536px) 240px, (min-width: 1280px) 20vw, (min-width: 768px) 30vw, 50vw"
-          className="object-cover transition duration-300 group-hover:scale-[1.03]"
-          unoptimized
-        />
-      </div>
-
-      <div className="space-y-3 p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <h3 className="truncate text-base font-bold text-slate-950">
-              {artwork.title}
-            </h3>
-            <p className="mt-1 truncate text-sm font-medium text-slate-500">
-              {artwork.category}
-            </p>
-          </div>
-
-          {artwork.isLiked && (
-            <span className="rounded-full bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-600">
-              liked
-            </span>
-          )}
-        </div>
-
-        <div className="flex items-center justify-between border-t border-slate-100 pt-3 text-sm text-slate-500">
-          <span>{artwork.likesCount} likes</span>
-          <Bookmark className="h-4 w-4 text-cyan-700" />
-        </div>
-      </div>
-    </Link>
-  );
+  return artwork.toString();
 }
 
 export default async function CollectionPage({
@@ -160,6 +132,7 @@ export default async function CollectionPage({
     likesCount: artwork.likesCount || 0,
     isLiked: likedArtworkIds.has(artwork._id.toString()),
   }));
+  const coverArtworkId = getArtworkId(collection.coverArtwork);
 
   return (
     <main className="min-h-screen bg-slate-50 px-5 py-8 text-slate-950 sm:px-8 lg:px-12">
@@ -199,13 +172,17 @@ export default async function CollectionPage({
           </div>
         </section>
 
-        {artworks.length > 0 ? (
-          <section className="columns-2 gap-5 sm:columns-3 lg:columns-4 xl:columns-5">
-            {artworks.map((artwork) => (
-              <CollectionArtworkCard key={artwork.id} artwork={artwork} />
-            ))}
-          </section>
-        ) : (
+        <CollectionManager
+          collection={{
+            id: collection._id.toString(),
+            name: collection.name || "Untitled board",
+            description: collection.description || "",
+            coverArtwork: coverArtworkId || null,
+          }}
+          artworks={artworks}
+        />
+
+        {artworks.length === 0 && (
           <section className="rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center shadow-sm">
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-cyan-50 text-cyan-700">
               <Images className="h-7 w-7" />

@@ -31,6 +31,7 @@ type RawCollection = {
   name?: string;
   description?: string;
   artworks?: Array<RawArtwork | null | undefined>;
+  coverArtwork?: Types.ObjectId | RawArtwork | null;
 };
 
 type RawSave = {
@@ -54,6 +55,7 @@ type CollectionItem = {
   id: string;
   name: string;
   description: string;
+  coverArtwork: string | null;
   artworks: ArtworkPreview[];
 };
 
@@ -73,14 +75,49 @@ function mapArtwork(artwork: RawArtwork): ArtworkPreview {
   };
 }
 
-function getArtworkId(artwork: Types.ObjectId | RawArtwork | null | undefined) {
+function getArtworkId(
+  artwork:
+    | Types.ObjectId
+    | RawArtwork
+    | string
+    | null
+    | undefined
+) {
   if (!artwork) return "";
+
+  if (typeof artwork === "string") {
+    return artwork;
+  }
 
   if (artwork instanceof Types.ObjectId) {
     return artwork.toString();
   }
 
-  return artwork._id.toString();
+  if ("_id" in artwork && artwork._id) {
+    return artwork._id.toString();
+  }
+
+  return artwork.toString();
+}
+
+function prioritizeCover(
+  artworks: ArtworkPreview[],
+  coverArtwork: string | null
+) {
+  if (!coverArtwork) return artworks;
+
+  const cover = artworks.find(
+    (artwork) => artwork.id === coverArtwork
+  );
+
+  if (!cover) return artworks;
+
+  return [
+    cover,
+    ...artworks.filter(
+      (artwork) => artwork.id !== coverArtwork
+    ),
+  ];
 }
 
 function BoardPreview({
@@ -216,7 +253,13 @@ export default async function SavedPage() {
     id: collection._id.toString(),
     name: collection.name || "Untitled board",
     description: collection.description || "",
-    artworks: (collection.artworks || []).filter(isRawArtwork).map(mapArtwork),
+    coverArtwork: getArtworkId(collection.coverArtwork) || null,
+    artworks: prioritizeCover(
+      (collection.artworks || [])
+        .filter(isRawArtwork)
+        .map(mapArtwork),
+      getArtworkId(collection.coverArtwork) || null
+    ),
   }));
 
   const collectionArtworkIds = new Set(
