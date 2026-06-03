@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LogIn } from "lucide-react";
+import { LogIn, Shield } from "lucide-react";
 import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/lib/auth";
@@ -10,6 +10,9 @@ export default async function Navbar() {
   const session =
     await getServerSession(authOptions);
   const isLoggedIn = !!session?.user?.id;
+  const isAdmin =
+    session?.user?.role === "admin" ||
+    session?.user?.role === "super-admin";
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/80 backdrop-blur">
@@ -53,6 +56,16 @@ export default async function Navbar() {
           >
             Saved
           </Link>
+
+          {isAdmin && (
+            <Link
+              href="/admin"
+              className="inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-semibold text-cyan-700 transition hover:bg-cyan-50"
+            >
+              <Shield className="h-4 w-4" />
+              Admin
+            </Link>
+          )}
         </nav>
 
         {/* Right Side */}

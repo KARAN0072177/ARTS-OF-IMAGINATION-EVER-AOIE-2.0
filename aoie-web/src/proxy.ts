@@ -46,6 +46,7 @@ export const config = {
     "/saved/:path*",
     "/collections/:path*",
     "/liked/:path*",
+    "/admin/:path*",
     "/complete-profile/:path*",
   ],
 };
