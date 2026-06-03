@@ -10,6 +10,57 @@ import User from "@/models/User";
 void Artwork;
 void User;
 
+interface RawNotification {
+  _id: {
+    toString(): string;
+  };
+  type: string;
+  isRead: boolean;
+  createdAt: Date;
+  sender?: {
+    username?: string;
+    artistProfile?: {
+      displayName?: string;
+      avatar?: string;
+    };
+  } | null;
+  artwork?: {
+    _id: {
+      toString(): string;
+    };
+    title?: string;
+    imageUrl?: string;
+  } | null;
+}
+
+function serializeNotification(
+  notification: RawNotification
+) {
+  return {
+    _id: notification._id.toString(),
+    type: notification.type,
+    isRead: notification.isRead,
+    createdAt:
+      notification.createdAt.toISOString(),
+    sender: notification.sender
+      ? {
+          username:
+            notification.sender.username || "",
+          artistProfile:
+            notification.sender.artistProfile || {},
+        }
+      : undefined,
+    artwork: notification.artwork
+      ? {
+          _id: notification.artwork._id.toString(),
+          title: notification.artwork.title || "",
+          imageUrl:
+            notification.artwork.imageUrl || "",
+        }
+      : undefined,
+  };
+}
+
 export async function GET(req: Request) {
   try {
     const session =
@@ -45,7 +96,7 @@ export async function GET(req: Request) {
         )
       : 50;
 
-    const notifications =
+    const rawNotifications =
       await Notification.find({
         recipient:
           session.user.id,
@@ -56,13 +107,16 @@ export async function GET(req: Request) {
         )
         .populate(
           "artwork",
-          "title"
+          "title imageUrl"
         )
         .sort({
           createdAt: -1,
         })
         .limit(limit)
         .lean();
+
+    const notifications =
+      rawNotifications as unknown as RawNotification[];
 
     const unreadCount =
       await Notification.countDocuments(
@@ -77,7 +131,9 @@ export async function GET(req: Request) {
     return Response.json({
       success: true,
 
-      notifications,
+      notifications: notifications.map(
+        serializeNotification
+      ),
 
       unreadCount,
     });

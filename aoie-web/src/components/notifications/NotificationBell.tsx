@@ -86,12 +86,17 @@ export default function NotificationBell() {
         onClick={() =>
           setOpen(!open)
         }
-        className="relative flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-slate-100"
+        className={`relative flex h-10 w-10 items-center justify-center rounded-full border transition ${
+          open
+            ? "border-cyan-200 bg-cyan-50 text-cyan-700"
+            : "border-transparent hover:border-slate-200 hover:bg-slate-100"
+        }`}
+        aria-label="Open notifications"
       >
         <Bell className="h-5 w-5" />
 
         {unreadCount > 0 && (
-          <span className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1 text-xs font-semibold text-white">
+          <span className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-rose-500 px-1 text-xs font-bold text-white shadow-sm ring-2 ring-white">
             {unreadCount > 99
               ? "99+"
               : unreadCount}

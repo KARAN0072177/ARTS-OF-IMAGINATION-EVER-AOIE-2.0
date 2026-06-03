@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { CheckCheck } from "lucide-react";
 
 export default function MarkAllReadButton() {
   const router = useRouter();
@@ -23,8 +24,9 @@ export default function MarkAllReadButton() {
   return (
     <button
       onClick={handleMarkAllRead}
-      className="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium transition hover:bg-slate-50"
+      className="inline-flex items-center gap-2 rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
     >
+      <CheckCheck className="h-4 w-4" />
       Mark all read
     </button>
   );
