@@ -2,7 +2,13 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Check, Loader2, X } from "lucide-react";
+import {
+  Check,
+  Loader2,
+  Mail,
+  ShieldCheck,
+  X,
+} from "lucide-react";
 
 export default function ArtistApplicationReviewActions({
   applicationId,
@@ -60,14 +66,32 @@ export default function ArtistApplicationReviewActions({
   }
 
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-      <h2 className="text-xl font-bold">
-        Review decision
-      </h2>
-      <p className="mt-1 text-sm text-slate-600">
-        Approving converts the user into an artist and unlocks uploads. Your
-        note will be included in the decision email.
-      </p>
+    <div className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+      <div className="flex items-start gap-3">
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-cyan-50 text-cyan-700 ring-1 ring-cyan-100">
+          <ShieldCheck className="h-5 w-5" />
+        </span>
+        <div>
+          <h2 className="text-xl font-extrabold tracking-tight">
+            Review decision
+          </h2>
+          <p className="mt-1 text-sm leading-6 text-slate-600">
+            Approving converts the user into an artist and unlocks uploads.
+            The note is included in the decision email.
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-5 rounded-2xl border border-cyan-100 bg-cyan-50 p-4">
+        <div className="flex items-center gap-2 text-sm font-bold text-cyan-900">
+          <Mail className="h-4 w-4" />
+          User notification
+        </div>
+        <p className="mt-1 text-sm leading-6 text-cyan-800/80">
+          AOIE will send a polished approval or rejection email immediately
+          after you submit the decision.
+        </p>
+      </div>
 
       <label className="mt-5 grid gap-2 text-sm font-semibold text-slate-700">
         Admin note
@@ -79,7 +103,7 @@ export default function ArtistApplicationReviewActions({
           rows={4}
           maxLength={500}
           disabled={disabled || Boolean(busyAction)}
-          className="resize-none rounded-2xl border border-slate-200 px-4 py-3 text-base text-slate-950 outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-100 disabled:bg-slate-50"
+          className="min-h-32 resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-950 outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-100 disabled:bg-slate-50"
           placeholder="Write the reason or next steps for the applicant."
         />
       </label>
@@ -90,12 +114,12 @@ export default function ArtistApplicationReviewActions({
         </p>
       )}
 
-      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+      <div className="mt-5 grid gap-3">
         <button
           type="button"
           disabled={disabled || Boolean(busyAction)}
           onClick={() => review("approve")}
-          className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {busyAction === "approve" ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -109,7 +133,7 @@ export default function ArtistApplicationReviewActions({
           type="button"
           disabled={disabled || Boolean(busyAction)}
           onClick={() => review("reject")}
-          className="inline-flex items-center justify-center gap-2 rounded-2xl bg-rose-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex items-center justify-center gap-2 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-700 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {busyAction === "reject" ? (
             <Loader2 className="h-4 w-4 animate-spin" />
