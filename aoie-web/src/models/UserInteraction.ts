@@ -5,17 +5,18 @@ import mongoose, {
   Types,
 } from "mongoose";
 
-export type InteractionType =
-  | "view"
-  | "like"
-  | "comment"
-  | "save";
-
 export interface IUserInteraction
   extends Document {
-  user?: Types.ObjectId;
+  user: Types.ObjectId;
   artwork: Types.ObjectId;
-  type: InteractionType;
+  type:
+    | "view"
+    | "click"
+    | "like"
+    | "save"
+    | "comment"
+    | "share"
+    | "download";
   category: string;
   tags: string[];
   weight: number;
@@ -29,38 +30,37 @@ const UserInteractionSchema =
       user: {
         type: Schema.Types.ObjectId,
         ref: "User",
+        required: true,
       },
-
       artwork: {
         type: Schema.Types.ObjectId,
         ref: "Artwork",
         required: true,
       },
-
       type: {
         type: String,
         enum: [
           "view",
+          "click",
           "like",
-          "comment",
           "save",
+          "comment",
+          "share",
+          "download",
         ],
-        required: true,
+        default: "view",
       },
-
       category: {
         type: String,
         required: true,
       },
-
       tags: {
         type: [String],
         default: [],
       },
-
       weight: {
         type: Number,
-        required: true,
+        default: 1,
       },
     },
     {
@@ -75,7 +75,12 @@ UserInteractionSchema.index({
 
 UserInteractionSchema.index({
   artwork: 1,
+  createdAt: -1,
+});
+
+UserInteractionSchema.index({
   type: 1,
+  createdAt: -1,
 });
 
 const UserInteraction: Model<IUserInteraction> =

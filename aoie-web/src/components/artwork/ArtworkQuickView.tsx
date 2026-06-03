@@ -237,6 +237,26 @@ export default function ArtworkQuickView({
     }
   };
 
+  const recordInteraction = async (
+    type: "share" | "download"
+  ) => {
+    try {
+      await fetch("/api/interactions", {
+        method: "POST",
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
+        body: JSON.stringify({
+          artworkId: activeArtwork.id,
+          type,
+        }),
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   const handleShare = async () => {
     const artworkPath = `/artwork/${activeArtwork.id}`;
     const shareUrl =
@@ -251,6 +271,7 @@ export default function ArtworkQuickView({
           text: `Check out "${activeArtwork.title}" on AOIE 2.0`,
           url: shareUrl,
         });
+        await recordInteraction("share");
 
         return;
       }
@@ -258,6 +279,7 @@ export default function ArtworkQuickView({
       await navigator.clipboard.writeText(
         shareUrl
       );
+      await recordInteraction("share");
       setShareStatus("copied");
 
       window.setTimeout(() => {
@@ -316,6 +338,7 @@ export default function ArtworkQuickView({
       link.remove();
 
       URL.revokeObjectURL(objectUrl);
+      await recordInteraction("download");
     } catch (error) {
       console.error(error);
       window.open(

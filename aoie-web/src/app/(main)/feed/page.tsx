@@ -8,10 +8,12 @@ import { connectDB } from "@/lib/db";
 import Artwork from "@/models/Artwork";
 import Like from "@/models/Like";
 import Save from "@/models/Save";
+import UserInteraction from "@/models/UserInteraction";
 
 import GalleryFeed, {
   GalleryArtwork,
 } from "@/components/artwork/GalleryFeed";
+import TrendingSection from "@/components/artwork/TrendingSection";
 
 interface FeedArtwork {
   _id: Types.ObjectId;
@@ -34,6 +36,11 @@ interface ArtworkLike {
 
 interface ArtworkSave {
   artwork: Types.ObjectId;
+}
+
+interface TrendingAggregate {
+  _id: Types.ObjectId;
+  score: number;
 }
 
 interface FeedPageProps {
@@ -170,6 +177,195 @@ export default async function FeedPage({
     ).map((save) => save.artwork.toString())
   );
 
+  const trendingRanked =
+    (await UserInteraction.aggregate([
+      {
+        $match: {
+          $expr: {
+            $gte: [
+              "$createdAt",
+              {
+                $dateSubtract: {
+                  startDate: "$$NOW",
+                  unit: "day",
+                  amount: 7,
+                },
+              },
+            ],
+          },
+        },
+      },
+      {
+        $group: {
+          _id: "$artwork",
+          score: {
+            $sum: {
+              $switch: {
+                branches: [
+                  {
+                    case: {
+                      $eq: ["$type", "view"],
+                    },
+                    then: 1,
+                  },
+                  {
+                    case: {
+                      $eq: ["$type", "click"],
+                    },
+                    then: 2,
+                  },
+                  {
+                    case: {
+                      $eq: ["$type", "like"],
+                    },
+                    then: 5,
+                  },
+                  {
+                    case: {
+                      $eq: ["$type", "save"],
+                    },
+                    then: 6,
+                  },
+                  {
+                    case: {
+                      $eq: ["$type", "comment"],
+                    },
+                    then: 4,
+                  },
+                  {
+                    case: {
+                      $eq: ["$type", "share"],
+                    },
+                    then: 8,
+                  },
+                  {
+                    case: {
+                      $eq: [
+                        "$type",
+                        "download",
+                      ],
+                    },
+                    then: 10,
+                  },
+                ],
+                default: {
+                  $ifNull: ["$weight", 1],
+                },
+              },
+            },
+          },
+          latestActivity: {
+            $max: "$createdAt",
+          },
+        },
+      },
+      {
+        $sort: {
+          score: -1,
+          latestActivity: -1,
+        },
+      },
+      {
+        $limit: 12,
+      },
+    ])) as TrendingAggregate[];
+  const trendingIds = trendingRanked.map(
+    (item) => item._id
+  );
+  const trendingArtworks =
+    trendingIds.length > 0
+      ? ((await Artwork.find({
+          _id: {
+            $in: trendingIds,
+          },
+          isPublished: true,
+        })
+          .select(
+            "title imageUrl category likesCount artist"
+          )
+          .populate(
+            "artist",
+            "username artistProfile.displayName artistProfile.avatar"
+          )
+          .lean()) as unknown as FeedArtwork[])
+      : [];
+  const [
+    trendingLikedArtworkIds,
+    trendingSavedArtworkIds,
+  ] =
+    session?.user?.id && trendingIds.length > 0
+      ? await Promise.all([
+          Like.find({
+            user: session.user.id,
+            artwork: {
+              $in: trendingIds,
+            },
+          })
+            .select("artwork")
+            .lean(),
+          Save.find({
+            user: session.user.id,
+            artwork: {
+              $in: trendingIds,
+            },
+          })
+            .select("artwork")
+            .lean(),
+        ])
+      : [[], []];
+  const trendingLikedSet = new Set(
+    (
+      trendingLikedArtworkIds as unknown as ArtworkLike[]
+    ).map((like) => like.artwork.toString())
+  );
+  const trendingSavedSet = new Set(
+    (
+      trendingSavedArtworkIds as unknown as ArtworkSave[]
+    ).map((save) => save.artwork.toString())
+  );
+  const trendingMap = new Map(
+    trendingArtworks.map((artwork) => [
+      artwork._id.toString(),
+      artwork,
+    ])
+  );
+  const trendingGalleryArtworks =
+    trendingIds
+      .map((id) =>
+        trendingMap.get(id.toString())
+      )
+      .filter(
+        (artwork): artwork is FeedArtwork =>
+          Boolean(artwork)
+      )
+      .map((artwork) => {
+        const artworkId =
+          artwork._id.toString();
+        const artistUsername =
+          artwork.artist?.username;
+
+        return {
+          id: artworkId,
+          title: artwork.title,
+          imageUrl: artwork.imageUrl,
+          category: artwork.category,
+          artistUsername,
+          artistName:
+            artwork.artist?.artistProfile
+              ?.displayName ||
+            artistUsername,
+          artistAvatar:
+            artwork.artist?.artistProfile
+              ?.avatar || "",
+          likesCount:
+            artwork.likesCount || 0,
+          isLiked:
+            trendingLikedSet.has(artworkId),
+          isSaved:
+            trendingSavedSet.has(artworkId),
+        };
+      });
+
   const galleryArtworks: GalleryArtwork[] =
     artworks.map((artwork) => {
       const artworkId =
@@ -277,13 +473,23 @@ export default async function FeedPage({
           )}
         </div>
       ) : (
-        <GalleryFeed
-          initialArtworks={galleryArtworks}
-          category={selectedCategory}
-          initialPage={currentPage}
-          totalCount={totalCount}
-          totalPages={totalPages}
-        />
+        <>
+          {!selectedCategory && (
+            <TrendingSection
+              artworks={
+                trendingGalleryArtworks
+              }
+            />
+          )}
+
+          <GalleryFeed
+            initialArtworks={galleryArtworks}
+            category={selectedCategory}
+            initialPage={currentPage}
+            totalCount={totalCount}
+            totalPages={totalPages}
+          />
+        </>
       )}
     </section>
   );

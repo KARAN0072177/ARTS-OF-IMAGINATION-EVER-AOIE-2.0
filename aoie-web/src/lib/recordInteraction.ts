@@ -1,51 +1,55 @@
 import Artwork from "@/models/Artwork";
-import UserInteraction, {
-  InteractionType,
-} from "@/models/UserInteraction";
+import UserInteraction from "@/models/UserInteraction";
+
+export type InteractionType =
+  | "view"
+  | "click"
+  | "like"
+  | "save"
+  | "comment"
+  | "share"
+  | "download";
 
 const interactionWeights: Record<
   InteractionType,
   number
 > = {
   view: 1,
-  like: 4,
-  comment: 5,
+  click: 2,
+  like: 5,
   save: 6,
+  comment: 4,
+  share: 8,
+  download: 10,
 };
+
+interface RecordInteractionInput {
+  userId: string;
+  artworkId: string;
+  type?: InteractionType;
+}
 
 export async function recordInteraction({
   userId,
   artworkId,
-  type,
-}: {
-  userId?: string;
-  artworkId: string;
-  type: InteractionType;
-}) {
-  try {
-    const artwork =
-      await Artwork.findById(artworkId)
-        .select("category tags")
-        .lean();
+  type = "view",
+}: RecordInteractionInput) {
+  const artwork = await Artwork.findById(
+    artworkId
+  )
+    .select("category tags")
+    .lean();
 
-    if (!artwork) {
-      return null;
-    }
-
-    return await UserInteraction.create({
-      user: userId,
-      artwork: artworkId,
-      type,
-      category: artwork.category,
-      tags: artwork.tags || [],
-      weight: interactionWeights[type],
-    });
-  } catch (error) {
-    console.error(
-      "Record Interaction Error:",
-      error
-    );
-
+  if (!artwork) {
     return null;
   }
+
+  return UserInteraction.create({
+    user: userId,
+    artwork: artworkId,
+    type,
+    category: artwork.category,
+    tags: artwork.tags || [],
+    weight: interactionWeights[type],
+  });
 }
