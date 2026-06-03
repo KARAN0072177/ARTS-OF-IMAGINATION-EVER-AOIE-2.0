@@ -21,7 +21,7 @@ const navItems = [
   },
   {
     label: "Artist approvals",
-    href: "/admin",
+    href: "/admin/artist-applications",
     icon: BadgeCheck,
   },
   {

@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  CheckCircle2,
   ImagePlus,
   Loader2,
   Send,
@@ -20,6 +21,8 @@ const categories = [
   "Pixel Art",
   "Other",
 ];
+
+const maxImageSize = 10 * 1024 * 1024;
 
 export default function UploadArtworkForm() {
   const router = useRouter();
@@ -69,7 +72,16 @@ export default function UploadArtworkForm() {
     }
 
     if (!file.type.startsWith("image/")) {
-      setError("Please select a valid image file.");
+      setError(
+        "Please choose a JPG, PNG, WEBP, or GIF image from your machine."
+      );
+      return;
+    }
+
+    if (file.size > maxImageSize) {
+      setError(
+        "Please choose an image that is 10MB or smaller."
+      );
       return;
     }
 
@@ -400,6 +412,18 @@ export default function UploadArtworkForm() {
               </button>
             </div>
           )}
+        </div>
+
+        <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+          <h2 className="text-base font-semibold text-slate-950">
+            Upload source
+          </h2>
+          <div className="mt-4 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 size={16} />
+              Local file upload only
+            </div>
+          </div>
         </div>
 
         <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">

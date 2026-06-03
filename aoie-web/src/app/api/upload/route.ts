@@ -11,6 +11,15 @@ import User from "@/models/User";
 
 import crypto from "crypto";
 
+const allowedImageTypes = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+];
+
+const maxFileSize = 10 * 1024 * 1024;
+
 export async function POST(
   req: Request
 ) {
@@ -75,6 +84,28 @@ export async function POST(
       );
     }
 
+    if (!allowedImageTypes.includes(file.type)) {
+      return Response.json(
+        {
+          success: false,
+          message:
+            "Please upload a JPG, PNG, WEBP, or GIF image.",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (file.size > maxFileSize) {
+      return Response.json(
+        {
+          success: false,
+          message:
+            "Image must be 10MB or smaller.",
+        },
+        { status: 400 }
+      );
+    }
+
     const bytes =
       await file.arrayBuffer();
 
@@ -82,7 +113,9 @@ export async function POST(
       Buffer.from(bytes);
 
     const fileExtension =
-      file.name.split(".").pop();
+      file.name.split(".").pop()?.toLowerCase() ||
+      file.type.split("/")[1] ||
+      "jpg";
 
     const fileName = `${crypto.randomUUID()}.${fileExtension}`;
 

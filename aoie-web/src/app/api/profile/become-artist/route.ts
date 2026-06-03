@@ -3,8 +3,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 
-import User from "@/models/User";
-
 export async function POST() {
   try {
     const session =
@@ -22,69 +20,12 @@ export async function POST() {
 
     await connectDB();
 
-    const user =
-      await User.findById(
-        session.user.id
-      );
-
-    if (!user) {
-      return Response.json(
-        {
-          success: false,
-          message: "User not found",
-        },
-        { status: 404 }
-      );
-    }
-
-    if (user.role === "artist") {
-      return Response.json(
-        {
-          success: false,
-          message:
-            "Account is already an artist account",
-        },
-        { status: 400 }
-      );
-    }
-
-    if (!user.username) {
-      return Response.json(
-        {
-          success: false,
-          message:
-            "Choose a username before activating your artist account",
-        },
-        { status: 400 }
-      );
-    }
-
-    user.role = "artist";
-
-    user.artistProfile = {
-      displayName: user.username,
-
-      bio: "",
-
-      website: "",
-
-      location: "",
-
-      avatar: "",
-
-      banner: "",
-
-      isArtistProfileComplete:
-        false,
-    };
-
-    await user.save();
-
     return Response.json({
-      success: true,
+      success: false,
       message:
-        "Artist account activated successfully",
-    });
+        "Artist accounts now require an application review.",
+      redirectTo: "/profile/become-artist",
+    }, { status: 410 });
   } catch (error) {
     console.error(error);
 

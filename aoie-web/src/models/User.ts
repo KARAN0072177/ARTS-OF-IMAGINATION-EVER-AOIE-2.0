@@ -23,6 +23,11 @@ export interface IUser extends Document {
   googleId?: string;
   authProviders: string[];
   usernameSetupRequired: boolean;
+  artistApplicationStatus:
+    | "none"
+    | "pending"
+    | "approved"
+    | "rejected";
 
   artistProfile?: IArtistProfile;
 
@@ -79,6 +84,12 @@ const UserSchema = new Schema<IUser>(
     usernameSetupRequired: {
       type: Boolean,
       default: false,
+    },
+
+    artistApplicationStatus: {
+      type: String,
+      enum: ["none", "pending", "approved", "rejected"],
+      default: "none",
     },
 
     artistProfile: {

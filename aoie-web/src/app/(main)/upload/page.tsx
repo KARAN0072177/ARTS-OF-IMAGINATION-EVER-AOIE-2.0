@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { UserRound } from "lucide-react";
+import { BadgeCheck, Clock, UserRound } from "lucide-react";
 
 import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
@@ -23,7 +23,7 @@ export default async function UploadPage() {
   const user = await User.findById(
     session.user.id
   )
-    .select("role")
+    .select("role artistApplicationStatus")
     .lean();
 
   if (!user) {
@@ -51,27 +51,44 @@ export default async function UploadPage() {
       ) : (
         <div className="rounded-xl border border-slate-200 bg-white p-8 text-center shadow-sm">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-cyan-50 text-cyan-700">
-            <UserRound size={24} />
+            {user.artistApplicationStatus ===
+            "pending" ? (
+              <Clock size={24} />
+            ) : (
+              <UserRound size={24} />
+            )}
           </div>
 
           <h2 className="mt-5 text-xl font-semibold text-slate-950">
-            Activate your artist account first
+            Artist approval required
           </h2>
 
           <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-slate-600">
-            Uploading artwork is available
-            only for artist accounts. Go to
-            your profile and activate artist
-            mode, then come back to publish
-            your work.
+            {user.artistApplicationStatus ===
+            "pending"
+              ? "Your artist application is currently under review. Upload access will unlock after approval."
+              : "Uploading artwork is available only after your artist application is approved by an admin."}
           </p>
 
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <Link
-              href="/profile"
+              href={
+                user.artistApplicationStatus ===
+                "pending"
+                  ? "/profile"
+                  : "/profile/become-artist"
+              }
               className="inline-flex items-center justify-center rounded-md bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
             >
-              Go to profile
+              {user.artistApplicationStatus ===
+              "pending" ? (
+                "View profile"
+              ) : (
+                <>
+                  <BadgeCheck className="mr-2 h-4 w-4" />
+                  Apply to become an artist
+                </>
+              )}
             </Link>
 
             <Link
