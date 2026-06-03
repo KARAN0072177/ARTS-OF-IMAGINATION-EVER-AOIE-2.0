@@ -16,6 +16,7 @@ import CommentSection, {
 } from "@/components/comment/CommentSection";
 
 import SaveButton from "@/components/artwork/SaveButton";
+import ReportArtworkButton from "@/components/artwork/ReportArtworkButton";
 
 interface ArtworkPageProps {
   params: Promise<{
@@ -349,6 +350,12 @@ export default async function ArtworkPage({
             <SaveButton
               artworkId={artwork._id.toString()}
               initialSaved={!!existingSave}
+            />
+          </div>
+
+          <div className="mt-3">
+            <ReportArtworkButton
+              artworkId={artwork._id.toString()}
             />
           </div>
         </aside>

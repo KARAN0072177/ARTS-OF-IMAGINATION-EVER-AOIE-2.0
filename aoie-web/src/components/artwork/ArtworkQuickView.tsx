@@ -16,6 +16,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import CollectionPicker from "@/components/artwork/CollectionPicker";
+import ReportArtworkButton from "@/components/artwork/ReportArtworkButton";
 
 interface Recommendation {
   id: string;
@@ -551,6 +552,13 @@ export default function ArtworkQuickView({
                   Open
                   <ExternalLink size={16} />
                 </Link>
+
+                <div className="col-span-2">
+                  <ReportArtworkButton
+                    artworkId={activeArtwork.id}
+                    variant="menu"
+                  />
+                </div>
               </div>
 
               <section className="border-t border-slate-200 pt-5">

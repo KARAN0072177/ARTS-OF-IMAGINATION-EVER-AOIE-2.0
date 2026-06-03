@@ -5,6 +5,7 @@ import {
   BadgeCheck,
   Bell,
   Brush,
+  Flag,
   Images,
   LayoutDashboard,
   Shield,
@@ -28,6 +29,11 @@ const navItems = [
     label: "Artworks",
     href: "/admin",
     icon: Images,
+  },
+  {
+    label: "Reports",
+    href: "/admin/reports",
+    icon: Flag,
   },
   {
     label: "Users",
