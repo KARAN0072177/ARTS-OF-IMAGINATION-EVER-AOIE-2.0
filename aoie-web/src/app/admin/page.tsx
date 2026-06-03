@@ -1,9 +1,6 @@
 import { getServerSession } from "next-auth";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
-  AlertTriangle,
-  ArrowRight,
   BadgeCheck,
   Bell,
   Brush,
@@ -105,34 +102,7 @@ export default async function AdminPage() {
     session.user.role === "super-admin";
 
   if (!isAdmin) {
-    return (
-      <section className="mx-auto max-w-3xl rounded-3xl border border-amber-200 bg-amber-50 p-8 text-amber-950 shadow-sm">
-        <div className="flex items-start gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white text-amber-700 shadow-sm">
-            <AlertTriangle className="h-6 w-6" />
-          </div>
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.24em] text-amber-700">
-              Restricted area
-            </p>
-            <h1 className="mt-3 text-3xl font-bold">
-              Admin access required
-            </h1>
-            <p className="mt-3 leading-7 text-amber-900/80">
-              This area is only available to AOIE administrators. Your account
-              is active, but it does not have admin privileges.
-            </p>
-            <Link
-              href="/feed"
-              className="mt-6 inline-flex items-center gap-2 rounded-2xl bg-amber-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-amber-900"
-            >
-              Back to feed
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-        </div>
-      </section>
-    );
+    redirect("/feed");
   }
 
   await connectDB();
@@ -222,15 +192,13 @@ export default async function AdminPage() {
 
       <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
         <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-          <div className="mb-5 flex items-center justify-between gap-3">
-            <div>
-              <h2 className="text-2xl font-bold">
-                Admin modules
-              </h2>
-              <p className="mt-1 text-sm text-slate-600">
-                These are the areas we can build next.
-              </p>
-            </div>
+          <div className="mb-5">
+            <h2 className="text-2xl font-bold">
+              Admin modules
+            </h2>
+            <p className="mt-1 text-sm text-slate-600">
+              These are the areas we can build next.
+            </p>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
