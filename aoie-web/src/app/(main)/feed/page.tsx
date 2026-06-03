@@ -197,65 +197,150 @@ export default async function FeedPage({
       },
       {
         $group: {
-          _id: "$artwork",
-          score: {
-            $sum: {
-              $switch: {
-                branches: [
-                  {
-                    case: {
-                      $eq: ["$type", "view"],
-                    },
-                    then: 1,
-                  },
-                  {
-                    case: {
-                      $eq: ["$type", "click"],
-                    },
-                    then: 2,
-                  },
-                  {
-                    case: {
-                      $eq: ["$type", "like"],
-                    },
-                    then: 5,
-                  },
-                  {
-                    case: {
-                      $eq: ["$type", "save"],
-                    },
-                    then: 6,
-                  },
-                  {
-                    case: {
-                      $eq: ["$type", "comment"],
-                    },
-                    then: 4,
-                  },
-                  {
-                    case: {
-                      $eq: ["$type", "share"],
-                    },
-                    then: 8,
-                  },
-                  {
-                    case: {
-                      $eq: [
-                        "$type",
-                        "download",
-                      ],
-                    },
-                    then: 10,
-                  },
-                ],
-                default: {
-                  $ifNull: ["$weight", 1],
-                },
-              },
-            },
+          _id: {
+            artwork: "$artwork",
+            user: "$user",
+            type: "$type",
+          },
+          count: {
+            $sum: 1,
           },
           latestActivity: {
             $max: "$createdAt",
+          },
+        },
+      },
+      {
+        $project: {
+          artwork: "$_id.artwork",
+          latestActivity: 1,
+          cappedCount: {
+            $min: [
+              "$count",
+              {
+                $switch: {
+                  branches: [
+                    {
+                      case: {
+                        $eq: [
+                          "$_id.type",
+                          "view",
+                        ],
+                      },
+                      then: 10,
+                    },
+                    {
+                      case: {
+                        $eq: [
+                          "$_id.type",
+                          "click",
+                        ],
+                      },
+                      then: 5,
+                    },
+                    {
+                      case: {
+                        $eq: [
+                          "$_id.type",
+                          "comment",
+                        ],
+                      },
+                      then: 5,
+                    },
+                    {
+                      case: {
+                        $eq: [
+                          "$_id.type",
+                          "share",
+                        ],
+                      },
+                      then: 3,
+                    },
+                    {
+                      case: {
+                        $eq: [
+                          "$_id.type",
+                          "download",
+                        ],
+                      },
+                      then: 2,
+                    },
+                  ],
+                  default: 1,
+                },
+              },
+            ],
+          },
+          weight: {
+            $switch: {
+              branches: [
+                {
+                  case: {
+                    $eq: ["$_id.type", "view"],
+                  },
+                  then: 1,
+                },
+                {
+                  case: {
+                    $eq: ["$_id.type", "click"],
+                  },
+                  then: 2,
+                },
+                {
+                  case: {
+                    $eq: ["$_id.type", "like"],
+                  },
+                  then: 5,
+                },
+                {
+                  case: {
+                    $eq: ["$_id.type", "save"],
+                  },
+                  then: 6,
+                },
+                {
+                  case: {
+                    $eq: [
+                      "$_id.type",
+                      "comment",
+                    ],
+                  },
+                  then: 4,
+                },
+                {
+                  case: {
+                    $eq: ["$_id.type", "share"],
+                  },
+                  then: 8,
+                },
+                {
+                  case: {
+                    $eq: [
+                      "$_id.type",
+                      "download",
+                    ],
+                  },
+                  then: 10,
+                },
+              ],
+              default: 1,
+            },
+          },
+        },
+      },
+      {
+        $group: {
+          _id: "$artwork",
+          score: {
+            $sum: {
+              $multiply: [
+                "$cappedCount",
+                "$weight",
+              ],
+            },
+          },
+          latestActivity: {
+            $max: "$latestActivity",
           },
         },
       },

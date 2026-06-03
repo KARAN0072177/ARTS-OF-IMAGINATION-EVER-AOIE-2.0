@@ -315,34 +315,18 @@ export default function ArtworkQuickView({
     setIsDownloading(true);
 
     try {
-      const response = await fetch(
-        activeArtwork.imageUrl
-      );
-
-      if (!response.ok) {
-        throw new Error(
-          "Unable to download image"
-        );
-      }
-
-      const blob = await response.blob();
-      const objectUrl =
-        URL.createObjectURL(blob);
       const link =
         document.createElement("a");
 
-      link.href = objectUrl;
+      link.href = `/api/artworks/${activeArtwork.id}/download`;
       link.download = getDownloadFileName();
       document.body.appendChild(link);
       link.click();
       link.remove();
-
-      URL.revokeObjectURL(objectUrl);
-      await recordInteraction("download");
     } catch (error) {
       console.error(error);
       window.open(
-        activeArtwork.imageUrl,
+        `/api/artworks/${activeArtwork.id}/download`,
         "_blank",
         "noopener,noreferrer"
       );
