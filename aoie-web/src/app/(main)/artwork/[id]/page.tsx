@@ -2,6 +2,13 @@ import Link from "next/link";
 import { Types } from "mongoose";
 import { getServerSession } from "next-auth";
 import { notFound } from "next/navigation";
+import {
+  CalendarDays,
+  Eye,
+  Hash,
+  MessageCircle,
+  User,
+} from "lucide-react";
 
 import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
@@ -9,14 +16,14 @@ import { connectDB } from "@/lib/db";
 import Artwork from "@/models/Artwork";
 import Comment from "@/models/Comment";
 import CommentLike from "@/models/CommentLike";
+import Like from "@/models/Like";
 import Save from "@/models/Save";
 
 import CommentSection, {
   ArtworkComment,
 } from "@/components/comment/CommentSection";
 
-import SaveButton from "@/components/artwork/SaveButton";
-import ReportArtworkButton from "@/components/artwork/ReportArtworkButton";
+import ArtworkDetailActions from "@/components/artwork/ArtworkDetailActions";
 
 interface ArtworkPageProps {
   params: Promise<{
@@ -27,6 +34,7 @@ interface ArtworkPageProps {
 interface PopulatedArtist {
   username: string;
   artistProfile?: {
+    avatar?: string;
     displayName?: string;
   };
 }
@@ -138,6 +146,14 @@ export default async function ArtworkPage({
         }).lean()
       : null;
 
+  const existingLike =
+    session?.user?.id
+      ? await Like.findOne({
+          user: session.user.id,
+          artwork: artwork._id,
+        }).lean()
+      : null;
+
   const comments = (await Comment.find({
     artwork: artwork._id,
     parentComment: null,
@@ -244,130 +260,205 @@ export default async function ArtworkPage({
       )
     );
 
+  const totalCommentCount =
+    commentsWithReplies.reduce(
+      (total, comment) =>
+        total +
+        1 +
+        (comment.replies?.length || 0),
+      0
+    );
+
   return (
     <section className="mx-auto max-w-7xl space-y-8">
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,1.45fr)_360px]">
-        <div className="self-start overflow-hidden rounded-xl border border-slate-200 bg-slate-950 shadow-sm">
-          <img
-            src={artwork.imageUrl}
-            alt={artwork.title}
-            className="h-auto w-full object-contain"
-          />
-        </div>
+      <div className="relative overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 scale-110 bg-cover bg-center opacity-15 blur-2xl"
+          style={{
+            backgroundImage: `url("${artwork.imageUrl}")`,
+          }}
+        />
+        <div className="absolute inset-0 bg-white/80" />
 
-        <aside className="self-start rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-full bg-cyan-50 px-3 py-1 text-xs font-semibold text-cyan-700">
-              {artwork.category}
-            </span>
-            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-              {artwork.likesCount}{" "}
-              {artwork.likesCount === 1
-                ? "like"
-                : "likes"}
-            </span>
+        <div className="relative grid lg:grid-cols-[minmax(0,1fr)_410px]">
+          <div className="flex min-h-[58vh] items-center justify-center p-3 sm:p-5 lg:min-h-[78vh] lg:p-8">
+            <div className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-[1.5rem] bg-slate-950 shadow-2xl ring-1 ring-slate-950/10">
+              <img
+                src={artwork.imageUrl}
+                alt={artwork.title}
+                className="max-h-[74vh] w-full object-contain"
+              />
+            </div>
           </div>
 
-          <h1 className="mt-4 text-3xl font-semibold leading-tight text-slate-950">
-            {artwork.title}
-          </h1>
-
-          <Link
-            href={`/artist/${artist.username}`}
-            className="mt-5 flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-3 transition hover:bg-slate-100"
-          >
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-950 text-sm font-semibold uppercase text-white">
-              {displayName.charAt(0)}
-            </span>
-            <span className="min-w-0">
-              <span className="block truncate text-sm font-semibold text-slate-950">
-                {displayName}
+          <aside className="border-t border-slate-200/80 bg-white/90 p-5 backdrop-blur-xl lg:border-l lg:border-t-0 lg:p-6">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="rounded-full bg-cyan-50 px-3 py-1 text-xs font-bold text-cyan-700">
+                {artwork.category}
               </span>
-              <span className="block truncate text-sm text-slate-500">
-                @{artist.username}
+              <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
+                <MessageCircle size={13} />
+                {totalCommentCount}
               </span>
-            </span>
-          </Link>
-
-          {artwork.description && (
-            <div className="mt-6 border-t border-slate-200 pt-5">
-              <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
-                Description
-              </h2>
-
-              <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-700">
-                {artwork.description}
-              </p>
             </div>
-          )}
 
-          {artwork.tags.length > 0 && (
-            <div className="mt-6 border-t border-slate-200 pt-5">
-              <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
-                Tags
-              </h2>
+            <h1 className="mt-4 text-3xl font-bold leading-tight text-slate-950">
+              {artwork.title}
+            </h1>
 
-              <div className="mt-3 flex flex-wrap gap-2">
-                {artwork.tags.map(
-                  (tag: string) => (
-                    <span
-                      key={tag}
-                      className="rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-700"
-                    >
-                      #{tag}
-                    </span>
-                  )
+            <Link
+              href={`/artist/${artist.username}`}
+              className="mt-5 flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3 transition hover:bg-white hover:shadow-sm"
+            >
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-950 text-sm font-semibold uppercase text-white">
+                {artist.artistProfile?.avatar ? (
+                  <img
+                    src={
+                      artist.artistProfile.avatar
+                    }
+                    alt={displayName}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <User size={18} />
                 )}
+              </span>
+              <span className="min-w-0">
+                <span className="block truncate text-sm font-bold text-slate-950">
+                  {displayName}
+                </span>
+                <span className="block truncate text-sm text-slate-500">
+                  @{artist.username}
+                </span>
+              </span>
+            </Link>
+
+            {artwork.description && (
+              <div className="mt-5 border-t border-slate-200 pt-5">
+                <h2 className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
+                  Description
+                </h2>
+
+                <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-700">
+                  {artwork.description}
+                </p>
               </div>
+            )}
+
+            {artwork.tags.length > 0 && (
+              <div className="mt-5 border-t border-slate-200 pt-5">
+                <h2 className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
+                  Tags
+                </h2>
+
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {artwork.tags.map(
+                    (tag: string) => (
+                      <span
+                        key={tag}
+                        className="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1 text-sm font-medium text-slate-700 shadow-sm ring-1 ring-slate-200"
+                      >
+                        <Hash size={12} />
+                        {tag}
+                      </span>
+                    )
+                  )}
+                </div>
+              </div>
+            )}
+
+            <dl className="mt-5 grid grid-cols-2 gap-3 border-t border-slate-200 pt-5 text-sm">
+              <div className="rounded-2xl bg-white p-3 shadow-sm ring-1 ring-slate-200">
+                <dt className="flex items-center gap-2 text-slate-500">
+                  <Eye size={15} />
+                  Views
+                </dt>
+
+                <dd className="mt-2 font-bold text-slate-950">
+                  {artwork.views}
+                </dd>
+              </div>
+
+              <div className="rounded-2xl bg-white p-3 shadow-sm ring-1 ring-slate-200">
+                <dt className="flex items-center gap-2 text-slate-500">
+                  <CalendarDays size={15} />
+                  Uploaded
+                </dt>
+
+                <dd className="mt-2 font-bold text-slate-950">
+                  {formatDate(
+                    artwork.createdAt
+                  )}
+                </dd>
+              </div>
+            </dl>
+
+            <div className="mt-5 border-t border-slate-200 pt-5">
+              <ArtworkDetailActions
+                artworkId={artwork._id.toString()}
+                title={artwork.title}
+                initialLiked={!!existingLike}
+                initialLikesCount={
+                  artwork.likesCount || 0
+                }
+                initialSaved={!!existingSave}
+              />
             </div>
-          )}
-
-          <dl className="mt-6 space-y-3 border-t border-slate-200 pt-5 text-sm">
-            <div className="flex justify-between gap-4">
-              <dt className="text-slate-500">
-                Views
-              </dt>
-
-              <dd className="font-semibold text-slate-950">
-                {artwork.views}
-              </dd>
-            </div>
-
-            <div className="flex justify-between gap-4">
-              <dt className="text-slate-500">
-                Uploaded
-              </dt>
-
-              <dd className="font-semibold text-slate-950">
-                {formatDate(
-                  artwork.createdAt
-                )}
-              </dd>
-            </div>
-          </dl>
-
-          <div className="mt-6">
-            <SaveButton
-              artworkId={artwork._id.toString()}
-              initialSaved={!!existingSave}
-            />
-          </div>
-
-          <div className="mt-3">
-            <ReportArtworkButton
-              artworkId={artwork._id.toString()}
-            />
-          </div>
-        </aside>
+          </aside>
+        </div>
       </div>
 
-      <div>
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         <CommentSection
           artworkId={artwork._id.toString()}
           initialComments={
             commentsWithReplies
           }
         />
+
+        <aside className="self-start rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm lg:sticky lg:top-24">
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-cyan-700">
+            Artwork pulse
+          </p>
+          <h2 className="mt-2 text-xl font-bold text-slate-950">
+            Quick stats
+          </h2>
+
+          <div className="mt-4 grid gap-3 text-sm">
+            <div className="flex items-center justify-between rounded-2xl bg-slate-50 p-3">
+              <span className="text-slate-500">
+                Likes
+              </span>
+              <span className="font-bold text-slate-950">
+                {artwork.likesCount || 0}
+              </span>
+            </div>
+            <div className="flex items-center justify-between rounded-2xl bg-slate-50 p-3">
+              <span className="text-slate-500">
+                Comments
+              </span>
+              <span className="font-bold text-slate-950">
+                {totalCommentCount}
+              </span>
+            </div>
+            <div className="flex items-center justify-between rounded-2xl bg-slate-50 p-3">
+              <span className="text-slate-500">
+                Views
+              </span>
+              <span className="font-bold text-slate-950">
+                {artwork.views}
+              </span>
+            </div>
+          </div>
+
+          <Link
+            href={`/artist/${artist.username}`}
+            className="mt-4 inline-flex w-full items-center justify-center rounded-2xl bg-slate-950 px-4 py-3 text-sm font-bold text-white transition hover:bg-slate-800"
+          >
+            View artist profile
+          </Link>
+        </aside>
       </div>
     </section>
   );

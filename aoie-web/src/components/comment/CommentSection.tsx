@@ -289,10 +289,10 @@ export default function CommentSection({
 
   return (
     <section className="lg:col-span-2">
-      <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <h2 className="text-xl font-semibold text-slate-950">
+            <h2 className="text-2xl font-bold text-slate-950">
               Comments
             </h2>
             <p className="mt-1 text-sm text-slate-500">
@@ -300,7 +300,7 @@ export default function CommentSection({
             </p>
           </div>
 
-          <div className="flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1.5 text-sm font-semibold text-slate-700">
+          <div className="flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1.5 text-sm font-bold text-slate-700">
             <MessageCircle size={16} />
             {totalCommentCount}
           </div>
@@ -318,7 +318,7 @@ export default function CommentSection({
             placeholder="Write a thoughtful comment..."
             rows={3}
             maxLength={1000}
-            className="w-full resize-none rounded-md border border-slate-300 bg-white p-3 text-sm text-slate-950 outline-none transition focus:border-cyan-600 focus:ring-4 focus:ring-cyan-100"
+            className="w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-950 outline-none transition focus:border-cyan-300 focus:bg-white focus:ring-4 focus:ring-cyan-100"
           />
 
           <div className="mt-3 flex items-center justify-between gap-3">
@@ -332,7 +332,7 @@ export default function CommentSection({
                 !content.trim() ||
                 submittingTarget === "comment"
               }
-              className="inline-flex items-center gap-2 rounded-md bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex items-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
             >
               <Send size={16} />
               {submittingTarget === "comment"
@@ -343,14 +343,14 @@ export default function CommentSection({
         </form>
 
         {error && (
-          <div className="mt-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
             {error}
           </div>
         )}
 
         <div className="mt-6 space-y-5">
           {comments.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-slate-300 p-8 text-center">
+            <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
               <p className="font-medium text-slate-800">
                 No comments yet
               </p>
@@ -362,7 +362,7 @@ export default function CommentSection({
             comments.map((comment) => (
               <article
                 key={comment._id}
-                className="rounded-lg border border-slate-200 p-4"
+                className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
               >
                 <CommentBody
                   comment={comment}
@@ -416,7 +416,7 @@ export default function CommentSection({
                         comment._id
                       )
                     }
-                    className="mt-4 rounded-md bg-slate-50 p-3"
+                    className="mt-4 rounded-2xl bg-slate-50 p-3"
                   >
                     <textarea
                       value={replyContent}
@@ -429,7 +429,7 @@ export default function CommentSection({
                       placeholder={`Reply to @${comment.user.username}...`}
                       rows={2}
                       maxLength={1000}
-                      className="w-full resize-none rounded-md border border-slate-300 bg-white p-3 text-sm text-slate-950 outline-none transition focus:border-cyan-600 focus:ring-4 focus:ring-cyan-100"
+                      className="w-full resize-none rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-950 outline-none transition focus:border-cyan-300 focus:ring-4 focus:ring-cyan-100"
                     />
 
                     <div className="mt-3 flex items-center justify-end gap-2">
@@ -450,7 +450,7 @@ export default function CommentSection({
                           submittingTarget ===
                             comment._id
                         }
-                        className="rounded-md bg-slate-950 px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                        className="rounded-xl bg-slate-950 px-3 py-2 text-sm font-bold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         {submittingTarget ===
                         comment._id
