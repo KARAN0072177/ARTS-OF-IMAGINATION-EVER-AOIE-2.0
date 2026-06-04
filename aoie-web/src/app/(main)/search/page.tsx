@@ -186,7 +186,7 @@ export default async function SearchPage({
 
   return (
     <section className="space-y-8">
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <div className="relative z-20 rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="relative p-6 sm:p-8">
           <div className="pointer-events-none absolute right-0 top-0 h-36 w-36 rounded-bl-full bg-cyan-50" />
           <div className="relative">
@@ -209,6 +209,7 @@ export default async function SearchPage({
               </div>
 
               <SearchBar
+                key={query}
                 initialQuery={query}
               />
             </div>
