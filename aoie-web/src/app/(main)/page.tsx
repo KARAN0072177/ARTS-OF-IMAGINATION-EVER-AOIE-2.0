@@ -124,38 +124,33 @@ export default async function HomePage() {
 
   return (
     <div className="space-y-12">
-      <section className="relative overflow-hidden rounded-[2rem] border border-slate-200 bg-slate-950 text-white shadow-sm">
-        {heroArtwork && (
-          <img
-            src={heroArtwork.imageUrl}
-            alt=""
-            aria-hidden="true"
-            className="absolute inset-0 h-full w-full object-cover opacity-45"
-          />
-        )}
-        <div className="absolute inset-0 bg-slate-950/55" />
-
-        <div className="relative min-h-[610px] px-5 py-8 sm:px-8 sm:py-10 lg:px-12">
-          <div className="max-w-4xl">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-cyan-700 shadow-sm">
+      <section className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
+        <div className="grid gap-0 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+          <div className="flex flex-col justify-center p-6 sm:p-8 lg:p-12">
+            <div className="inline-flex items-center gap-2 rounded-full bg-cyan-50 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-cyan-700 ring-1 ring-cyan-100">
               <Sparkles size={14} />
               Arts of Imagination Ever
             </div>
 
-            <h1 className="mt-6 max-w-3xl text-5xl font-black leading-[0.95] tracking-tight sm:text-6xl lg:text-7xl">
+            <h1 className="mt-6 max-w-3xl text-5xl font-black leading-[0.95] tracking-tight text-slate-950 sm:text-6xl lg:text-7xl">
               AOIE 2.0
             </h1>
 
-            <p className="mt-5 max-w-2xl text-lg leading-8 text-white/82">
-              A modern art discovery space for browsing visual work,
-              collecting inspiration, following artists, and building a
-              smarter feed from the images you actually interact with.
+            <p className="mt-5 max-w-2xl text-xl font-semibold leading-8 text-slate-800">
+              A curated visual platform for discovering artwork, saving
+              inspiration, following artists, and building a smarter image
+              feed from what you actually enjoy.
+            </p>
+            <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">
+              AOIE combines a gallery feed, artwork collections, artist
+              profiles, comments, notifications, reports, and admin-reviewed
+              artist access into one focused creative community.
             </p>
 
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 href="/feed"
-                className="inline-flex items-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-cyan-50"
+                className="inline-flex items-center gap-2 rounded-2xl bg-slate-950 px-5 py-3 text-sm font-bold text-white transition hover:bg-slate-800"
               >
                 Explore feed
                 <ArrowRight size={17} />
@@ -166,7 +161,7 @@ export default async function HomePage() {
                     ? "/profile/become-artist"
                     : "/register"
                 }
-                className="inline-flex items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-5 py-3 text-sm font-bold text-white backdrop-blur transition hover:bg-white/15"
+                className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-800 transition hover:bg-slate-50"
               >
                 {isLoggedIn
                   ? "Become an artist"
@@ -175,79 +170,164 @@ export default async function HomePage() {
             </div>
 
             <div className="mt-8 grid max-w-xl grid-cols-3 gap-3">
-              <div className="rounded-2xl bg-white/12 p-4 ring-1 ring-white/15 backdrop-blur">
-                <p className="text-2xl font-black text-white">
+              <div className="rounded-2xl bg-white/85 p-4 shadow-sm ring-1 ring-slate-200 backdrop-blur">
+                <p className="text-2xl font-black text-slate-950">
                   {formatCount(artworkCount)}
                 </p>
-                <p className="mt-1 text-xs font-semibold text-white/65">
+                <p className="mt-1 text-xs font-semibold text-slate-500">
                   Artworks
                 </p>
               </div>
-              <div className="rounded-2xl bg-white/12 p-4 ring-1 ring-white/15 backdrop-blur">
-                <p className="text-2xl font-black text-white">
+              <div className="rounded-2xl bg-white/85 p-4 shadow-sm ring-1 ring-slate-200 backdrop-blur">
+                <p className="text-2xl font-black text-slate-950">
                   {formatCount(artistCount)}
                 </p>
-                <p className="mt-1 text-xs font-semibold text-white/65">
+                <p className="mt-1 text-xs font-semibold text-slate-500">
                   Artists
                 </p>
               </div>
-              <div className="rounded-2xl bg-white/12 p-4 ring-1 ring-white/15 backdrop-blur">
-                <p className="text-2xl font-black text-white">
+              <div className="rounded-2xl bg-white/85 p-4 shadow-sm ring-1 ring-slate-200 backdrop-blur">
+                <p className="text-2xl font-black text-slate-950">
                   Smart
                 </p>
-                <p className="mt-1 text-xs font-semibold text-white/65">
+                <p className="mt-1 text-xs font-semibold text-slate-500">
                   Discovery
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="absolute bottom-0 left-0 right-0 border-t border-white/10 bg-slate-950/45 p-4 backdrop-blur-xl sm:p-5">
+          <div className="bg-slate-950 p-4 sm:p-5 lg:p-6">
             {artworks.length > 0 ? (
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-                {artworks.slice(0, 5).map(
-                  (artwork) => (
-                    <Link
-                      key={artwork._id.toString()}
-                      href={`/artwork/${artwork._id.toString()}`}
-                      className="group flex min-h-28 overflow-hidden rounded-2xl bg-white/10 ring-1 ring-white/10 transition hover:bg-white/15"
-                    >
-                      <img
-                        src={artwork.imageUrl}
-                        alt={artwork.title}
-                        className="h-28 w-24 shrink-0 object-cover transition duration-300 group-hover:scale-[1.03]"
-                      />
-                      <div className="min-w-0 p-3">
-                        <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-cyan-200">
-                          {artwork.category}
-                        </p>
-                        <p className="mt-2 line-clamp-2 text-sm font-bold leading-5 text-white">
-                          {artwork.title}
-                        </p>
-                        <p className="mt-1 truncate text-xs text-white/65">
-                          by {getArtistName(artwork)}
-                        </p>
-                      </div>
-                    </Link>
-                  )
+              <div className="grid h-full min-h-[460px] grid-cols-5 grid-rows-6 gap-3">
+                {heroArtwork && (
+                  <Link
+                    href={`/artwork/${heroArtwork._id.toString()}`}
+                    className="group relative col-span-5 row-span-3 overflow-hidden rounded-3xl bg-slate-900 ring-1 ring-white/10 sm:col-span-3 sm:row-span-6"
+                  >
+                    <img
+                      src={heroArtwork.imageUrl}
+                      alt={heroArtwork.title}
+                      className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-transparent to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
+                      <p className="text-xs font-bold uppercase tracking-[0.12em] text-cyan-200">
+                        Featured
+                      </p>
+                      <h2 className="mt-1 line-clamp-2 text-xl font-black leading-6">
+                        {heroArtwork.title}
+                      </h2>
+                      <p className="mt-1 text-sm text-white/70">
+                        by {getArtistName(heroArtwork)}
+                      </p>
+                    </div>
+                  </Link>
                 )}
+
+                {artworks.slice(1, 4).map((artwork) => (
+                  <Link
+                    key={artwork._id.toString()}
+                    href={`/artwork/${artwork._id.toString()}`}
+                    className="group relative col-span-5 row-span-1 overflow-hidden rounded-2xl bg-slate-900 ring-1 ring-white/10 sm:col-span-2 sm:row-span-2"
+                  >
+                    <img
+                      src={artwork.imageUrl}
+                      alt={artwork.title}
+                      className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 p-3 text-white">
+                      <p className="line-clamp-1 text-sm font-bold">
+                        {artwork.title}
+                      </p>
+                      <p className="mt-0.5 text-xs text-cyan-100">
+                        {artwork.category}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
               </div>
             ) : (
-              <div className="flex items-center gap-3 rounded-2xl border border-dashed border-white/20 bg-white/5 p-4">
-                <ImageIcon className="h-6 w-6 shrink-0 text-cyan-200" />
+              <div className="flex min-h-[460px] items-center justify-center rounded-3xl border border-dashed border-white/20 bg-white/5 p-6 text-center text-white">
                 <div>
-                  <p className="font-bold">
+                  <ImageIcon className="mx-auto h-9 w-9 text-cyan-200" />
+                  <p className="mt-4 text-lg font-bold">
                     Your gallery starts here
                   </p>
-                  <p className="text-sm text-white/70">
-                    Upload the first artwork and AOIE will turn this space
-                    into a live platform preview.
+                  <p className="mt-2 max-w-sm text-sm text-white/70">
+                    Upload the first artwork and AOIE will turn this preview
+                    into a living gallery.
                   </p>
                 </div>
               </div>
             )}
           </div>
         </div>
+      </section>
+
+      <section className="space-y-5">
+        <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-cyan-700">
+              Featured from AOIE
+            </p>
+            <h2 className="mt-2 text-3xl font-black tracking-tight text-slate-950">
+              Start with the gallery
+            </h2>
+          </div>
+          <Link
+            href="/feed"
+            className="inline-flex w-fit items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-800 transition hover:bg-slate-50"
+          >
+            View all artwork
+            <ArrowRight size={16} />
+          </Link>
+        </div>
+
+        {artworks.length > 0 ? (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {artworks.slice(0, 4).map((artwork) => (
+              <Link
+                key={artwork._id.toString()}
+                href={`/artwork/${artwork._id.toString()}`}
+                className="group overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+              >
+                <div className="aspect-[4/3] overflow-hidden bg-slate-100">
+                  <img
+                    src={artwork.imageUrl}
+                    alt={artwork.title}
+                    className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]"
+                  />
+                </div>
+                <div className="p-4">
+                  <p className="text-xs font-bold uppercase tracking-[0.12em] text-cyan-700">
+                    {artwork.category}
+                  </p>
+                  <h3 className="mt-2 line-clamp-1 text-base font-bold text-slate-950">
+                    {artwork.title}
+                  </h3>
+                  <p className="mt-1 truncate text-sm text-slate-500">
+                    by {getArtistName(artwork)}
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="flex items-center gap-3 rounded-3xl border border-dashed border-slate-300 bg-white p-6">
+            <ImageIcon className="h-7 w-7 shrink-0 text-cyan-700" />
+            <div>
+              <p className="font-bold text-slate-950">
+                Your gallery starts here
+              </p>
+              <p className="text-sm text-slate-600">
+                Upload the first artwork and AOIE will turn this space into a
+                live platform preview.
+              </p>
+            </div>
+          </div>
+        )}
       </section>
 
       <section className="grid gap-4 md:grid-cols-3">
