@@ -39,7 +39,7 @@ const navItems = [
   },
   {
     label: "Users",
-    href: "/admin",
+    href: "/admin/users",
     icon: Users,
   },
   {
