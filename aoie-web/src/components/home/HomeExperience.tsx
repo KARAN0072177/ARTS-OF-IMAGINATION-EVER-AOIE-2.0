@@ -208,7 +208,7 @@ function ArtworkArtistAvatar({
 }) {
   if (artwork.artistAvatar) {
     return (
-      <span className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full bg-slate-950 ring-2 ring-white">
+      <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full bg-slate-950 ring-2 ring-white">
         <Image
           src={artwork.artistAvatar}
           alt={artwork.artistName}
@@ -216,14 +216,14 @@ function ArtworkArtistAvatar({
           sizes="44px"
           className="object-cover"
         />
-      </span>
+      </div>
     );
   }
 
   return (
-    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-950 text-xs font-semibold text-white ring-2 ring-white">
+    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-950 text-xs font-semibold text-white ring-2 ring-white">
       {getInitial(artwork.artistName)}
-    </span>
+    </div>
   );
 }
 
@@ -270,13 +270,13 @@ export default function HomeExperience({
       : featuredArtworks;
   const trendingItems =
     trendingSource.slice(0, 10);
-  const marqueeTrendingItems =
-    trendingItems.length > 0
-      ? [
-          ...trendingItems,
-          ...trendingItems,
-        ]
-      : [];
+  const marqueeTrendingItems: HomeArtwork[] = [];
+  if (trendingItems.length > 0) {
+    const repeatCount = Math.max(2, Math.ceil(12 / trendingItems.length));
+    for (let i = 0; i < repeatCount; i++) {
+      marqueeTrendingItems.push(...trendingItems);
+    }
+  }
   const artistItems = artists.slice(0, 8);
   const featuredArtist =
     artistItems[0];

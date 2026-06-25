@@ -255,11 +255,26 @@ export async function GET(req: Request) {
         },
       ]);
 
-    const artworkIds = ranked
+    let artworkIds: Types.ObjectId[] = ranked
       .map((item) => item._id)
-      .filter((id) =>
+      .filter((id): id is Types.ObjectId =>
         Types.ObjectId.isValid(id)
       );
+
+    if (artworkIds.length < limit) {
+      const remainingCount = limit - artworkIds.length;
+      const fallbackArtworks = await Artwork.find({
+        _id: { $nin: artworkIds },
+        isPublished: true,
+      })
+        .select("_id")
+        .sort({ likesCount: -1, createdAt: -1 })
+        .limit(remainingCount)
+        .lean();
+      
+      const fallbackIds = fallbackArtworks.map((art) => art._id as Types.ObjectId);
+      artworkIds = [...artworkIds, ...fallbackIds];
+    }
 
     if (artworkIds.length === 0) {
       return Response.json({
