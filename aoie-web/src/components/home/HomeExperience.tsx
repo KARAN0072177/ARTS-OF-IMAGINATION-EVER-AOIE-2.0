@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   motion,
+  useReducedMotion,
   type Variants,
 } from "framer-motion";
 import {
@@ -97,6 +98,16 @@ const revealItem: Variants = {
     },
   },
 };
+
+const sectionViewport = {
+  once: true,
+  amount: 0.2,
+} as const;
+
+const softHoverTransition = {
+  duration: 0.28,
+  ease: "easeOut",
+} as const;
 
 const signalItems = [
   {
@@ -249,6 +260,8 @@ export default function HomeExperience({
   artistCount,
   isLoggedIn,
 }: HomeExperienceProps) {
+  const shouldReduceMotion =
+    useReducedMotion();
   const hero =
     featuredArtworks[0];
   const trendingSource =
@@ -278,22 +291,46 @@ export default function HomeExperience({
 
   return (
     <motion.div
-      variants={revealContainer}
-      initial="hidden"
-      animate="show"
       className="pb-8"
     >
       <motion.section
         variants={revealItem}
+        initial="hidden"
+        animate="show"
         className="relative left-1/2 -mt-10 w-screen -translate-x-1/2 overflow-hidden bg-slate-950"
       >
         <div className="relative h-[min(760px,calc(100vh-5rem))] min-h-[560px]">
-          <ArtworkImage
-            artwork={hero}
-            sizes="100vw"
-            priority
-            className="object-cover opacity-95"
-          />
+          <motion.div
+            className="absolute inset-0"
+            animate={
+              shouldReduceMotion
+                ? undefined
+                : {
+                    scale: [
+                      1.02,
+                      1.07,
+                      1.02,
+                    ],
+                    x: [
+                      "0%",
+                      "-1.2%",
+                      "0%",
+                    ],
+                  }
+            }
+            transition={{
+              duration: 28,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          >
+            <ArtworkImage
+              artwork={hero}
+              sizes="100vw"
+              priority
+              className="object-cover opacity-95"
+            />
+          </motion.div>
           <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(2,6,23,0.92)_0%,rgba(2,6,23,0.76)_34%,rgba(2,6,23,0.22)_68%,rgba(2,6,23,0.62)_100%)]" />
           <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(2,6,23,0.3)_0%,rgba(2,6,23,0)_38%,rgba(2,6,23,0.88)_100%)]" />
 
@@ -450,6 +487,9 @@ export default function HomeExperience({
 
       <motion.section
         variants={revealItem}
+        initial="hidden"
+        whileInView="show"
+        viewport={sectionViewport}
         className="relative left-1/2 w-screen -translate-x-1/2 py-14 sm:py-16"
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -552,6 +592,9 @@ export default function HomeExperience({
       {featuredArtist && (
         <motion.section
           variants={revealItem}
+          initial="hidden"
+          whileInView="show"
+          viewport={sectionViewport}
           className="grid gap-12 py-6 lg:grid-cols-[0.72fr_1.28fr] lg:items-start"
         >
           <div className="lg:sticky lg:top-24">
@@ -671,17 +714,19 @@ export default function HomeExperience({
               </div>
             </Link>
 
-            <div className="grid gap-3">
+            <motion.div
+              variants={revealContainer}
+              className="grid gap-3"
+            >
               {supportingArtists.map((artist) => (
                 <motion.div
                   key={artist.id}
+                  variants={revealItem}
                   whileHover={{
                     x: 5,
+                    y: -2,
                   }}
-                  transition={{
-                    duration: 0.22,
-                    ease: "easeOut",
-                  }}
+                  transition={softHoverTransition}
                 >
                   <Link
                     href={`/artist/${artist.username}`}
@@ -694,7 +739,7 @@ export default function HomeExperience({
                           alt={`${artist.displayName} banner`}
                           fill
                           sizes="176px"
-                          className="object-cover transition duration-500 group-hover:scale-[1.04]"
+                          className="object-cover transition duration-700 ease-out will-change-transform group-hover:scale-[1.04]"
                         />
                       ) : (
                         <div className="h-full w-full bg-[linear-gradient(135deg,#f8fafc,#dbeafe)]" />
@@ -726,13 +771,16 @@ export default function HomeExperience({
                   </Link>
                 </motion.div>
               ))}
-            </div>
+            </motion.div>
           </div>
         </motion.section>
       )}
 
       <motion.section
         variants={revealItem}
+        initial="hidden"
+        whileInView="show"
+        viewport={sectionViewport}
         className="relative left-1/2 w-screen -translate-x-1/2 bg-white py-16 sm:py-20"
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -752,63 +800,78 @@ export default function HomeExperience({
             </p>
           </div>
 
-          <div className="mt-9 grid gap-6 lg:grid-cols-3">
+          <motion.div
+            variants={revealContainer}
+            className="mt-9 grid gap-6 lg:grid-cols-3"
+          >
             {collections.map(
               (collection) => (
-                <Link
-                  href="/saved"
+                <motion.div
                   key={collection.name}
-                  className="group block"
+                  variants={revealItem}
+                  whileHover={{
+                    y: -8,
+                  }}
+                  transition={softHoverTransition}
                 >
-                  <div className="grid h-72 grid-cols-2 grid-rows-2 gap-2 overflow-hidden rounded-[1.75rem] bg-slate-100 shadow-sm transition group-hover:-translate-y-1 group-hover:shadow-xl">
-                    {collection.images.map(
-                      (image, index) => (
-                        <div
-                          key={image.id}
-                          className={
-                            index === 0
-                              ? "relative row-span-2 overflow-hidden"
-                              : "relative overflow-hidden"
-                          }
-                        >
-                          <Image
-                            src={
-                              image.imageUrl
+                  <Link
+                    href="/saved"
+                    className="group block"
+                  >
+                    <div className="grid h-72 grid-cols-2 grid-rows-2 gap-2 overflow-hidden rounded-[1.75rem] bg-slate-100 shadow-sm transition duration-300 group-hover:shadow-xl">
+                      {collection.images.map(
+                        (image, index) => (
+                          <div
+                            key={image.id}
+                            className={
+                              index === 0
+                                ? "relative row-span-2 overflow-hidden"
+                                : "relative overflow-hidden"
                             }
-                            alt={image.title}
-                            fill
-                            sizes="(min-width: 1024px) 210px, 50vw"
-                            className="object-cover transition duration-500 group-hover:scale-[1.04]"
-                          />
-                        </div>
-                      )
-                    )}
-                  </div>
-                  <div className="mt-4 flex items-center justify-between gap-4">
-                    <div>
-                      <p className="text-2xl font-semibold text-slate-950">
-                        {collection.name}
-                      </p>
-                      <p className="mt-1 text-sm text-slate-500">
-                        {formatCount(
-                          collection.count
-                        )}{" "}
-                        images saved by theme
-                      </p>
+                          >
+                            <Image
+                              src={
+                                image.imageUrl
+                              }
+                              alt={image.title}
+                              fill
+                              sizes="(min-width: 1024px) 210px, 50vw"
+                              className="object-cover transition duration-700 ease-out will-change-transform group-hover:scale-[1.04]"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/16 via-transparent to-transparent opacity-0 transition duration-500 group-hover:opacity-100" />
+                          </div>
+                        )
+                      )}
                     </div>
-                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-cyan-50 text-cyan-700 transition group-hover:bg-cyan-600 group-hover:text-white">
-                      <Layers3 size={20} />
-                    </span>
-                  </div>
-                </Link>
+                    <div className="mt-4 flex items-center justify-between gap-4">
+                      <div>
+                        <p className="text-2xl font-semibold text-slate-950">
+                          {collection.name}
+                        </p>
+                        <p className="mt-1 text-sm text-slate-500">
+                          {formatCount(
+                            collection.count
+                          )}{" "}
+                          images saved by theme
+                        </p>
+                      </div>
+                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-cyan-50 text-cyan-700 transition duration-300 group-hover:bg-cyan-600 group-hover:text-white">
+                        <Layers3 size={20} />
+                      </span>
+                    </div>
+                  </Link>
+                </motion.div>
               )
             )}
-          </div>
+          </motion.div>
         </div>
       </motion.section>
 
       <motion.section
         variants={revealItem}
+        initial="hidden"
+        whileInView="show"
+        viewport={sectionViewport}
         className="grid gap-10 py-14 lg:grid-cols-[1fr_0.95fr] lg:items-center"
       >
         <div>
@@ -825,17 +888,23 @@ export default function HomeExperience({
             shared image.
           </p>
 
-          <div className="mt-7 flex flex-wrap gap-3">
+          <motion.div
+            variants={revealContainer}
+            className="mt-7 flex flex-wrap gap-3"
+          >
             {signalItems.map((item) => {
               const Icon = item.icon;
 
               return (
                 <motion.div
                   key={item.label}
+                  variants={revealItem}
                   whileHover={{
                     y: -4,
+                    scale: 1.02,
                   }}
-                  className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm ring-1 ring-slate-200"
+                  transition={softHoverTransition}
+                  className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm ring-1 ring-slate-200 transition-colors hover:text-slate-950 hover:shadow-md"
                 >
                   <Icon
                     size={16}
@@ -845,44 +914,64 @@ export default function HomeExperience({
                 </motion.div>
               );
             })}
-          </div>
+          </motion.div>
         </div>
 
-        <div className="grid grid-cols-3 gap-3">
+        <motion.div
+          variants={revealContainer}
+          className="grid grid-cols-3 gap-3"
+        >
           {closingArtworks.map(
             (artwork, index) => (
-              <Link
-                href={`/artwork/${artwork.id}`}
+              <motion.div
                 key={artwork.id}
+                variants={revealItem}
+                whileHover={{
+                  y: -7,
+                }}
+                transition={softHoverTransition}
                 className={
                   index === 0
-                    ? "group relative col-span-2 aspect-[4/3] overflow-hidden rounded-[1.75rem] bg-slate-200 shadow-lg shadow-slate-950/10"
-                    : "group relative aspect-[3/4] overflow-hidden rounded-[1.5rem] bg-slate-200 shadow-sm"
+                    ? "col-span-2"
+                    : ""
                 }
               >
-                <ArtworkImage
-                  artwork={artwork}
-                  sizes={
+                <Link
+                  href={`/artwork/${artwork.id}`}
+                  className={
                     index === 0
-                      ? "(min-width: 1024px) 420px, 70vw"
-                      : "(min-width: 1024px) 190px, 30vw"
+                      ? "group relative block aspect-[4/3] overflow-hidden rounded-[1.75rem] bg-slate-200 shadow-lg shadow-slate-950/10"
+                      : "group relative block aspect-[3/4] overflow-hidden rounded-[1.5rem] bg-slate-200 shadow-sm"
                   }
-                  className="object-cover transition duration-700 group-hover:scale-[1.04]"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/68 via-transparent to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-                  <p className="line-clamp-1 text-sm font-semibold">
-                    {artwork.title}
-                  </p>
-                </div>
-              </Link>
+                >
+                  <ArtworkImage
+                    artwork={artwork}
+                    sizes={
+                      index === 0
+                        ? "(min-width: 1024px) 420px, 70vw"
+                        : "(min-width: 1024px) 190px, 30vw"
+                    }
+                    className="object-cover transition duration-700 ease-out will-change-transform group-hover:scale-[1.04]"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/68 via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-cyan-200/0 transition duration-500 group-hover:bg-cyan-200/10" />
+                  <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
+                    <p className="line-clamp-1 text-sm font-semibold">
+                      {artwork.title}
+                    </p>
+                  </div>
+                </Link>
+              </motion.div>
             )
           )}
-        </div>
+        </motion.div>
       </motion.section>
 
       <motion.section
         variants={revealItem}
+        initial="hidden"
+        whileInView="show"
+        viewport={sectionViewport}
         className="border-t border-slate-200 py-12"
       >
         <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-center">
