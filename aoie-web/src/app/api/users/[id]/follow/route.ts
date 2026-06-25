@@ -18,6 +18,7 @@ interface FollowListUser {
   role: string;
   artistProfile?: {
     displayName?: string;
+    avatar?: string;
   };
 }
 
@@ -283,6 +284,7 @@ export async function GET(
             user.artistProfile
               ?.displayName ||
             user.username,
+          avatar: user.artistProfile?.avatar || "",
         }));
 
       return Response.json({
