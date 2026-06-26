@@ -150,6 +150,8 @@ export default function UploadArtworkForm() {
             imageUrl:
               uploadData.imageUrl,
             tags: tagList,
+            placeholderUrl:
+              uploadData.placeholderUrl,
           }),
         });
 

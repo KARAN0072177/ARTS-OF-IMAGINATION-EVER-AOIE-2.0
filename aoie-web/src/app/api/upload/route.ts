@@ -10,6 +10,7 @@ import { connectDB } from "@/lib/db";
 import User from "@/models/User";
 
 import crypto from "crypto";
+import sharp from "sharp";
 
 const allowedImageTypes = [
   "image/jpeg",
@@ -112,6 +113,17 @@ export async function POST(
     const buffer =
       Buffer.from(bytes);
 
+    let placeholderUrl = "";
+    try {
+      const lowResBuffer = await sharp(buffer)
+        .resize(32, 32, { fit: "inside" })
+        .jpeg({ quality: 70 })
+        .toBuffer();
+      placeholderUrl = `data:image/jpeg;base64,${lowResBuffer.toString("base64")}`;
+    } catch (e) {
+      console.error("Failed to generate base64 image placeholder", e);
+    }
+
     const fileExtension =
       file.name.split(".").pop()?.toLowerCase() ||
       file.type.split("/")[1] ||
@@ -143,6 +155,7 @@ export async function POST(
     return Response.json({
       success: true,
       imageUrl,
+      placeholderUrl,
     });
   } catch (error) {
     console.error(error);

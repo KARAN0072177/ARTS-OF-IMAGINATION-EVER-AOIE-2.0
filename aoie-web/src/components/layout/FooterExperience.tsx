@@ -19,6 +19,7 @@ export interface FooterArtwork {
   imageUrl: string;
   category: string;
   likesCount: number;
+  placeholderUrl?: string;
 }
 
 interface FooterExperienceProps {
@@ -75,6 +76,8 @@ export default function FooterExperience({
           fill
           sizes="100vw"
           className="object-cover opacity-70"
+          placeholder={artwork.placeholderUrl ? "blur" : "empty"}
+          blurDataURL={artwork.placeholderUrl}
         />
       ) : (
         <div className="absolute inset-0 bg-[linear-gradient(135deg,#020617,#0f172a_55%,#083344)]" />

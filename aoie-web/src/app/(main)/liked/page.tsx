@@ -16,6 +16,7 @@ interface LikedArtwork {
   imageUrl: string;
   category: string;
   likesCount: number;
+  placeholderUrl?: string;
 }
 
 interface LikedItem {
@@ -130,6 +131,7 @@ export default async function LikedPage() {
                   artworkId
                 )}
                 priority={index < 8}
+                placeholderUrl={liked.artwork.placeholderUrl}
               />
             );
           })}

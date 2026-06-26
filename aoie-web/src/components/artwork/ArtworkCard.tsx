@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 import { Maximize2 } from "lucide-react";
 
@@ -18,6 +18,7 @@ interface ArtworkCardProps {
   isLiked?: boolean;
   isSaved?: boolean;
   priority?: boolean;
+  placeholderUrl?: string;
 }
 
 export default function ArtworkCard({
@@ -32,6 +33,7 @@ export default function ArtworkCard({
   isLiked = false,
   isSaved = false,
   priority = false,
+  placeholderUrl = "",
 }: ArtworkCardProps) {
   const [liked, setLiked] =
     useState(isLiked);
@@ -41,6 +43,15 @@ export default function ArtworkCard({
     useState(isSaved);
   const [quickViewOpen, setQuickViewOpen] =
     useState(false);
+  const [loaded, setLoaded] =
+    useState(false);
+  const imgRef = useRef<HTMLImageElement | null>(null);
+
+  useEffect(() => {
+    if (imgRef.current && imgRef.current.complete) {
+      setLoaded(true);
+    }
+  }, []);
 
   return (
     <>
@@ -53,14 +64,27 @@ export default function ArtworkCard({
           className="relative block w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-600 focus-visible:ring-offset-2"
           aria-label={`Open quick view for ${title}`}
         >
-          <div className="overflow-hidden">
+          <div className="relative overflow-hidden bg-slate-200">
+            {!loaded && placeholderUrl && (
+              <div
+                className="absolute inset-0 bg-cover bg-center filter blur-xl scale-110 opacity-70 transition-opacity duration-300"
+                style={{ backgroundImage: `url(${placeholderUrl})` }}
+              />
+            )}
+            {!loaded && !placeholderUrl && (
+              <div className="absolute inset-0 animate-pulse bg-slate-200" />
+            )}
             <img
+              ref={imgRef}
               src={imageUrl}
               alt={title}
               loading={priority ? "eager" : "lazy"}
               fetchPriority={priority ? "high" : "auto"}
               decoding="async"
-              className="h-auto w-full transition duration-300 group-hover:scale-[1.02]"
+              onLoad={() => setLoaded(true)}
+              className={`h-auto w-full transition duration-300 group-hover:scale-[1.02] ${
+                loaded ? "opacity-100" : "opacity-0"
+              }`}
             />
           </div>
 

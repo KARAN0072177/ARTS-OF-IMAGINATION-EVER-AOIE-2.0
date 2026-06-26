@@ -37,6 +37,7 @@ export interface HomeArtwork {
   artistUsername: string;
   artistName: string;
   artistAvatar: string;
+  placeholderUrl?: string;
 }
 
 export interface HomeArtist {
@@ -56,6 +57,7 @@ export interface HomeCollection {
     id: string;
     title: string;
     imageUrl: string;
+    placeholderUrl?: string;
   }[];
   count: number;
 }
@@ -148,7 +150,7 @@ function ArtworkImage({
 }: {
   artwork: Pick<
     HomeArtwork,
-    "imageUrl" | "title"
+    "imageUrl" | "title" | "placeholderUrl"
   >;
   className?: string;
   sizes: string;
@@ -162,6 +164,8 @@ function ArtworkImage({
       sizes={sizes}
       className={className}
       priority={priority}
+      placeholder={artwork.placeholderUrl ? "blur" : "empty"}
+      blurDataURL={artwork.placeholderUrl}
     />
   );
 }
@@ -837,6 +841,8 @@ export default function HomeExperience({
                               fill
                               sizes="(min-width: 1024px) 210px, 50vw"
                               className="object-cover transition duration-700 ease-out will-change-transform group-hover:scale-[1.04]"
+                              placeholder={image.placeholderUrl ? "blur" : "empty"}
+                              blurDataURL={image.placeholderUrl}
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-slate-950/16 via-transparent to-transparent opacity-0 transition duration-500 group-hover:opacity-100" />
                           </div>

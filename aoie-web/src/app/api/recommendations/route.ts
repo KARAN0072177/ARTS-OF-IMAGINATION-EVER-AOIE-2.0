@@ -24,6 +24,7 @@ interface RecommendationArtwork {
   tags: string[];
   likesCount: number;
   createdAt: Date;
+  placeholderUrl?: string;
 }
 
 function addWeight(
@@ -78,6 +79,7 @@ function toRecommendation(
         ?.avatar || "",
     isLiked: likedSet.has(id),
     isSaved: savedSet.has(id),
+    placeholderUrl: artwork.placeholderUrl || "",
   };
 }
 
@@ -258,7 +260,7 @@ export async function GET(req: Request) {
       (await Promise.all([
         Artwork.find(personalizedQuery)
           .select(
-            "artist title imageUrl category tags likesCount createdAt"
+            "artist title imageUrl category tags likesCount createdAt placeholderUrl"
           )
           .populate(
             "artist",
@@ -270,7 +272,7 @@ export async function GET(req: Request) {
 
         Artwork.find(exploreQuery)
           .select(
-            "artist title imageUrl category tags likesCount createdAt"
+            "artist title imageUrl category tags likesCount createdAt placeholderUrl"
           )
           .populate(
             "artist",
@@ -285,7 +287,7 @@ export async function GET(req: Request) {
           ...excludeQuery,
         })
           .select(
-            "artist title imageUrl category tags likesCount createdAt"
+            "artist title imageUrl category tags likesCount createdAt placeholderUrl"
           )
           .populate(
             "artist",

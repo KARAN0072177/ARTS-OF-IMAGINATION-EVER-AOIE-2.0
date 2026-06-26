@@ -24,6 +24,7 @@ export interface GalleryArtwork {
   likesCount: number;
   isLiked: boolean;
   isSaved: boolean;
+  placeholderUrl?: string;
 }
 
 interface GalleryFeedProps {
@@ -61,7 +62,13 @@ function GalleryTile({
         className="relative block w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-600 focus-visible:ring-offset-2"
         aria-label={`Open quick view for ${artwork.title}`}
       >
-        {!loaded && (
+        {!loaded && artwork.placeholderUrl && (
+          <div
+            className="absolute inset-0 bg-cover bg-center filter blur-xl scale-110 opacity-70 transition-opacity duration-300"
+            style={{ backgroundImage: `url(${artwork.placeholderUrl})` }}
+          />
+        )}
+        {!loaded && !artwork.placeholderUrl && (
           <div className="absolute inset-0 animate-pulse bg-slate-200" />
         )}
 

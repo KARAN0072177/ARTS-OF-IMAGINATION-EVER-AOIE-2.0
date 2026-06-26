@@ -36,6 +36,7 @@ interface RawArtwork {
   likesCount?: number;
   views?: number;
   artist?: RawArtist;
+  placeholderUrl?: string;
 }
 
 interface RankedArtwork {
@@ -75,6 +76,7 @@ function serializeArtwork(
     artistAvatar:
       artwork.artist?.artistProfile
         ?.avatar || "",
+    placeholderUrl: artwork.placeholderUrl || "",
   };
 }
 
@@ -158,6 +160,7 @@ function buildCollections(
               title: artwork.title,
               imageUrl:
                 artwork.imageUrl,
+              placeholderUrl: artwork.placeholderUrl,
             })),
           count: boardArtworks.length,
         }) satisfies HomeCollection
@@ -178,6 +181,7 @@ function buildCollections(
             title: artwork.title,
             imageUrl:
               artwork.imageUrl,
+            placeholderUrl: artwork.placeholderUrl,
           })),
         count: artworks.length,
       },
@@ -409,7 +413,7 @@ export default async function HomePage() {
       isPublished: true,
     })
       .select(
-        "title imageUrl category tags likesCount views artist createdAt"
+        "title imageUrl category tags likesCount views artist createdAt placeholderUrl"
       )
       .populate(
         "artist",
@@ -433,7 +437,7 @@ export default async function HomePage() {
         : {}),
     })
       .select(
-        "title imageUrl category tags likesCount views artist createdAt"
+        "title imageUrl category tags likesCount views artist createdAt placeholderUrl"
       )
       .populate(
         "artist",

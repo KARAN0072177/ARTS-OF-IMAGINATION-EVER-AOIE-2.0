@@ -28,6 +28,7 @@ interface ArtistArtwork {
   imageUrl: string;
   category: string;
   likesCount: number;
+  placeholderUrl?: string;
 }
 
 interface ArtworkLike {
@@ -238,6 +239,7 @@ export default async function ArtistPage({
                   artwork._id.toString()
                 )}
                 priority={index < 8}
+                placeholderUrl={artwork.placeholderUrl}
               />
             ))}
           </div>

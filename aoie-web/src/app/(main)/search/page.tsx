@@ -51,6 +51,7 @@ interface SearchArtwork {
       avatar?: string;
     };
   };
+  placeholderUrl?: string;
 }
 
 interface ArtworkLike {
@@ -125,7 +126,7 @@ export default async function SearchPage({
           ],
         })
           .select(
-            "title imageUrl category likesCount artist"
+            "title imageUrl category likesCount artist placeholderUrl"
           )
           .populate(
             "artist",
@@ -407,6 +408,7 @@ export default async function SearchPage({
                           id
                         )}
                         priority={index < 8}
+                        placeholderUrl={artwork.placeholderUrl}
                       />
                     );
                   }

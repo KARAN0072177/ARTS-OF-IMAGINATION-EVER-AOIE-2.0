@@ -22,6 +22,7 @@ interface FeedArtwork {
       avatar?: string;
     };
   };
+  placeholderUrl?: string;
 }
 
 interface ArtworkLike {
@@ -89,7 +90,7 @@ export async function GET(req: Request) {
         Artwork.countDocuments(query),
         Artwork.find(query)
           .select(
-            "title imageUrl category likesCount artist"
+            "title imageUrl category likesCount artist placeholderUrl"
           )
           .populate(
             "artist",
@@ -180,6 +181,7 @@ export async function GET(req: Request) {
               likedSet.has(artworkId),
             isSaved:
               savedSet.has(artworkId),
+            placeholderUrl: artwork.placeholderUrl || "",
           };
         }
       ),
@@ -261,6 +263,7 @@ export async function POST(
       imageUrl,
       category,
       tags,
+      placeholderUrl,
     } = body;
 
     if (
@@ -294,6 +297,7 @@ export async function POST(
         tags: Array.isArray(tags)
           ? tags
           : [],
+        placeholderUrl: placeholderUrl || "",
       });
 
     return Response.json(

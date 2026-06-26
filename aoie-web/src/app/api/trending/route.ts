@@ -24,6 +24,7 @@ interface TrendingArtwork {
   category: string;
   likesCount: number;
   artist?: TrendingArtist;
+  placeholderUrl?: string;
 }
 
 interface ArtworkLike {
@@ -240,7 +241,7 @@ export async function GET(req: Request) {
           },
           isPublished: true,
         })
-          .select("title imageUrl category likesCount artist")
+          .select("title imageUrl category likesCount artist placeholderUrl")
           .populate(
             "artist",
             "username artistProfile.displayName artistProfile.avatar"
@@ -337,6 +338,7 @@ export async function GET(req: Request) {
           trendingScore: scoreMap.get(id) || 0,
           isLiked: likedSet.has(id),
           isSaved: savedSet.has(id),
+          placeholderUrl: artwork.placeholderUrl || "",
         };
       }),
     });

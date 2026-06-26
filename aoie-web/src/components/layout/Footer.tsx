@@ -12,6 +12,7 @@ interface RawFooterArtwork {
   imageUrl: string;
   category: string;
   likesCount?: number;
+  placeholderUrl?: string;
 }
 
 function serializeFooterArtwork(
@@ -27,6 +28,7 @@ function serializeFooterArtwork(
     imageUrl: artwork.imageUrl,
     category: artwork.category,
     likesCount: artwork.likesCount || 0,
+    placeholderUrl: artwork.placeholderUrl || "",
   };
 }
 
@@ -38,7 +40,7 @@ export default async function Footer() {
       isPublished: true,
     })
       .select(
-        "title imageUrl category likesCount"
+        "title imageUrl category likesCount placeholderUrl"
       )
       .sort({
         likesCount: -1,

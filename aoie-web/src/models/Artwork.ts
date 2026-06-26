@@ -15,6 +15,8 @@ export interface IArtwork
 
   imageUrl: string;
 
+  placeholderUrl?: string;
+
   category: string;
 
   tags: string[];
@@ -54,6 +56,10 @@ const ArtworkSchema =
       imageUrl: {
         type: String,
         required: true,
+      },
+      placeholderUrl: {
+        type: String,
+        default: "",
       },
 
       category: {

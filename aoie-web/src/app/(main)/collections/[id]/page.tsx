@@ -19,6 +19,7 @@ interface CollectionArtwork {
   imageUrl: string;
   category: string;
   likesCount: number;
+  placeholderUrl?: string;
 }
 
 interface CollectionDetail {
@@ -64,7 +65,7 @@ export default async function CollectionPage({
       .populate({
         path: "artworks",
         select:
-          "title imageUrl category likesCount",
+          "title imageUrl category likesCount placeholderUrl",
       })
       .lean()) as unknown as CollectionDetail | null;
 
@@ -160,6 +161,7 @@ export default async function CollectionPage({
                 )}
                 isSaved
                 priority={index < 8}
+                placeholderUrl={artwork.placeholderUrl}
               />
             )
           )}

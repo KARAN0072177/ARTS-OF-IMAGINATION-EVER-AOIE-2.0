@@ -15,8 +15,10 @@ interface SearchArtworkResult {
     username?: string;
     artistProfile?: {
       displayName?: string;
+      avatar?: string;
     };
   };
+  placeholderUrl?: string;
 }
 
 function escapeRegex(value: string) {
@@ -103,7 +105,7 @@ export async function GET(req: Request) {
           ],
         })
           .select(
-            "title imageUrl category tags artist"
+            "title imageUrl category tags artist placeholderUrl"
           )
           .populate(
             "artist",
@@ -169,6 +171,7 @@ export async function GET(req: Request) {
           "",
         artistUsername:
           artwork.artist?.username || "",
+        placeholderUrl: artwork.placeholderUrl || "",
       })),
       categories: categories.slice(0, 8),
       tags: tags.slice(0, 12),

@@ -28,6 +28,7 @@ interface FeedArtwork {
       avatar?: string;
     };
   };
+  placeholderUrl?: string;
 }
 
 interface ArtworkLike {
@@ -127,7 +128,7 @@ export default async function FeedPage({
 
   const artworks = (await Artwork.find(feedQuery)
     .select(
-      "title imageUrl category likesCount artist"
+      "title imageUrl category likesCount artist placeholderUrl"
     )
     .populate(
       "artist",
@@ -366,7 +367,7 @@ export default async function FeedPage({
           isPublished: true,
         })
           .select(
-            "title imageUrl category likesCount artist"
+            "title imageUrl category likesCount artist placeholderUrl"
           )
           .populate(
             "artist",
@@ -448,6 +449,7 @@ export default async function FeedPage({
             trendingLikedSet.has(artworkId),
           isSaved:
             trendingSavedSet.has(artworkId),
+          placeholderUrl: artwork.placeholderUrl || "",
         };
       });
 
@@ -475,6 +477,7 @@ export default async function FeedPage({
           artwork.likesCount || 0,
         isLiked: likedSet.has(artworkId),
         isSaved: savedSet.has(artworkId),
+        placeholderUrl: artwork.placeholderUrl || "",
       };
     });
 
