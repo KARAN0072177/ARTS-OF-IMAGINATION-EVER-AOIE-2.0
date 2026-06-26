@@ -147,7 +147,7 @@ export default async function CollectionPage({
       ) : (
         <div className="columns-2 gap-4 sm:columns-3 lg:columns-4 xl:columns-5">
           {collection.artworks.map(
-            (artwork) => (
+            (artwork, index) => (
               <ArtworkCard
                 key={artwork._id.toString()}
                 id={artwork._id.toString()}
@@ -159,6 +159,7 @@ export default async function CollectionPage({
                   artwork._id.toString()
                 )}
                 isSaved
+                priority={index < 8}
               />
             )
           )}

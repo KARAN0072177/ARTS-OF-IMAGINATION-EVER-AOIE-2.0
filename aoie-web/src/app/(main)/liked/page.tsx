@@ -107,7 +107,7 @@ export default async function LikedPage() {
         </div>
       ) : (
         <div className="columns-2 gap-4 sm:columns-3 lg:columns-4 xl:columns-5">
-          {likedArtworkItems.map((liked) => {
+          {likedArtworkItems.map((liked, index) => {
             const artworkId =
               liked.artwork._id.toString();
 
@@ -129,6 +129,7 @@ export default async function LikedPage() {
                 isSaved={savedSet.has(
                   artworkId
                 )}
+                priority={index < 8}
               />
             );
           })}

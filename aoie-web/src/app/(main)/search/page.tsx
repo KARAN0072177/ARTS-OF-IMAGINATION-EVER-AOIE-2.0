@@ -366,7 +366,7 @@ export default async function SearchPage({
 
               <div className="columns-2 gap-4 sm:columns-3 lg:columns-4 xl:columns-5">
                 {typedArtworks.map(
-                  (artwork) => {
+                  (artwork, index) => {
                     const id =
                       artwork._id.toString();
                     const artistUsername =
@@ -406,6 +406,7 @@ export default async function SearchPage({
                         isSaved={savedSet.has(
                           id
                         )}
+                        priority={index < 8}
                       />
                     );
                   }

@@ -37,12 +37,21 @@ interface GalleryFeedProps {
 function GalleryTile({
   artwork,
   onOpen,
+  priority = false,
 }: {
   artwork: GalleryArtwork;
   onOpen: () => void;
+  priority?: boolean;
 }) {
   const [loaded, setLoaded] =
     useState(false);
+  const imgRef = useRef<HTMLImageElement | null>(null);
+
+  useEffect(() => {
+    if (imgRef.current && imgRef.current.complete) {
+      setLoaded(true);
+    }
+  }, []);
 
   return (
     <article className="group mb-4 break-inside-avoid overflow-hidden rounded-xl bg-slate-100 shadow-sm ring-1 ring-slate-200/70 transition duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:ring-slate-300 sm:mb-5">
@@ -57,9 +66,11 @@ function GalleryTile({
         )}
 
         <img
+          ref={imgRef}
           src={artwork.imageUrl}
           alt={artwork.title}
-          loading="lazy"
+          loading={priority ? "eager" : "lazy"}
+          fetchPriority={priority ? "high" : "auto"}
           decoding="async"
           onLoad={() => setLoaded(true)}
           className={`h-auto w-full transition duration-300 group-hover:scale-[1.02] ${
@@ -68,7 +79,6 @@ function GalleryTile({
               : "opacity-0"
           }`}
         />
-
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-slate-950/35 via-transparent to-transparent opacity-0 transition duration-200 group-hover:opacity-100" />
 
         <span className="pointer-events-none absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-slate-900 opacity-0 shadow-sm transition duration-200 group-hover:opacity-100">
@@ -226,6 +236,7 @@ export default function GalleryFeed({
             key={artwork.id}
             artwork={artwork}
             onOpen={() => setOpenIndex(index)}
+            priority={index < 8}
           />
         ))}
 

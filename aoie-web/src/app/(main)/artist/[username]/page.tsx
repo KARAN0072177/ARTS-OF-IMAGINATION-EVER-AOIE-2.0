@@ -220,7 +220,7 @@ export default async function ArtistPage({
           </div>
         ) : (
           <div className="columns-2 gap-4 sm:columns-3 lg:columns-4 xl:columns-5">
-            {artworks.map((artwork) => (
+            {artworks.map((artwork, index) => (
               <ArtworkCard
                 key={artwork._id.toString()}
                 id={artwork._id.toString()}
@@ -237,6 +237,7 @@ export default async function ArtistPage({
                 isSaved={savedSet.has(
                   artwork._id.toString()
                 )}
+                priority={index < 8}
               />
             ))}
           </div>

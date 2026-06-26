@@ -114,7 +114,8 @@ export default function TrendingSection({
               <img
                 src={artwork.imageUrl}
                 alt={artwork.title}
-                loading="lazy"
+                loading={index < 6 ? "eager" : "lazy"}
+                fetchPriority={index < 6 ? "high" : "auto"}
                 decoding="async"
                 className="h-full w-full object-cover"
               />

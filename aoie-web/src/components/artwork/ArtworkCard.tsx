@@ -17,6 +17,7 @@ interface ArtworkCardProps {
   likesCount?: number;
   isLiked?: boolean;
   isSaved?: boolean;
+  priority?: boolean;
 }
 
 export default function ArtworkCard({
@@ -30,6 +31,7 @@ export default function ArtworkCard({
   likesCount = 0,
   isLiked = false,
   isSaved = false,
+  priority = false,
 }: ArtworkCardProps) {
   const [liked, setLiked] =
     useState(isLiked);
@@ -55,7 +57,8 @@ export default function ArtworkCard({
             <img
               src={imageUrl}
               alt={title}
-              loading="lazy"
+              loading={priority ? "eager" : "lazy"}
+              fetchPriority={priority ? "high" : "auto"}
               decoding="async"
               className="h-auto w-full transition duration-300 group-hover:scale-[1.02]"
             />

@@ -51,37 +51,50 @@ function getRange(value: string | null) {
   return "week";
 }
 
+// Caching Configurations & Memory Storage
+interface CacheEntry {
+  timestamp: number;
+  sortedArtworks: TrendingArtwork[];
+  scoreMapEntries: [string, number][];
+}
+
+const cacheStore = new Map<string, CacheEntry>();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes in milliseconds
+
 export async function GET(req: Request) {
   try {
-    const session =
-      await getServerSession(authOptions);
-    const { searchParams } =
-      new URL(req.url);
-    const range = getRange(
-      searchParams.get("range")
-    );
+    const session = await getServerSession(authOptions);
+    const { searchParams } = new URL(req.url);
+    const range = getRange(searchParams.get("range"));
     const limit = Math.min(
       Math.max(
-        Number.parseInt(
-          searchParams.get("limit") || "12",
-          10
-        ) || 12,
+        Number.parseInt(searchParams.get("limit") || "12", 10) || 12,
         1
       ),
       24
     );
-    const since = new Date(
-      Date.now() -
-        rangeHours[range] *
-          60 *
-          60 *
-          1000
-    );
 
-    await connectDB();
+    const cacheKey = `${range}-${limit}`;
+    const cachedEntry = cacheStore.get(cacheKey);
+    const isCacheHit = !!cachedEntry && (Date.now() - cachedEntry.timestamp < CACHE_TTL);
 
-    const ranked =
-      await UserInteraction.aggregate([
+    let sortedArtworks: TrendingArtwork[] = [];
+    let scoreMapEntries: [string, number][] = [];
+
+    if (isCacheHit && cachedEntry) {
+      console.log(`[Trending Cache] ${cacheKey} - HIT`);
+      sortedArtworks = cachedEntry.sortedArtworks;
+      scoreMapEntries = cachedEntry.scoreMapEntries;
+    } else {
+      console.log(`[Trending Cache] ${cacheKey} - MISS`);
+      
+      const since = new Date(
+        Date.now() - rangeHours[range] * 60 * 60 * 1000
+      );
+
+      await connectDB();
+
+      const ranked = await UserInteraction.aggregate([
         {
           $match: {
             createdAt: {
@@ -115,48 +128,23 @@ export async function GET(req: Request) {
                   $switch: {
                     branches: [
                       {
-                        case: {
-                          $eq: [
-                            "$_id.type",
-                            "view",
-                          ],
-                        },
+                        case: { $eq: ["$_id.type", "view"] },
                         then: 10,
                       },
                       {
-                        case: {
-                          $eq: [
-                            "$_id.type",
-                            "click",
-                          ],
-                        },
+                        case: { $eq: ["$_id.type", "click"] },
                         then: 5,
                       },
                       {
-                        case: {
-                          $eq: [
-                            "$_id.type",
-                            "comment",
-                          ],
-                        },
+                        case: { $eq: ["$_id.type", "comment"] },
                         then: 5,
                       },
                       {
-                        case: {
-                          $eq: [
-                            "$_id.type",
-                            "share",
-                          ],
-                        },
+                        case: { $eq: ["$_id.type", "share"] },
                         then: 3,
                       },
                       {
-                        case: {
-                          $eq: [
-                            "$_id.type",
-                            "download",
-                          ],
-                        },
+                        case: { $eq: ["$_id.type", "download"] },
                         then: 2,
                       },
                     ],
@@ -169,57 +157,31 @@ export async function GET(req: Request) {
               $switch: {
                 branches: [
                   {
-                    case: {
-                      $eq: ["$_id.type", "view"],
-                    },
+                    case: { $eq: ["$_id.type", "view"] },
                     then: 1,
                   },
                   {
-                    case: {
-                      $eq: [
-                        "$_id.type",
-                        "click",
-                      ],
-                    },
+                    case: { $eq: ["$_id.type", "click"] },
                     then: 2,
                   },
                   {
-                    case: {
-                      $eq: ["$_id.type", "like"],
-                    },
+                    case: { $eq: ["$_id.type", "like"] },
                     then: 5,
                   },
                   {
-                    case: {
-                      $eq: ["$_id.type", "save"],
-                    },
+                    case: { $eq: ["$_id.type", "save"] },
                     then: 6,
                   },
                   {
-                    case: {
-                      $eq: [
-                        "$_id.type",
-                        "comment",
-                      ],
-                    },
+                    case: { $eq: ["$_id.type", "comment"] },
                     then: 4,
                   },
                   {
-                    case: {
-                      $eq: [
-                        "$_id.type",
-                        "share",
-                      ],
-                    },
+                    case: { $eq: ["$_id.type", "share"] },
                     then: 8,
                   },
                   {
-                    case: {
-                      $eq: [
-                        "$_id.type",
-                        "download",
-                      ],
-                    },
+                    case: { $eq: ["$_id.type", "download"] },
                     then: 10,
                   },
                 ],
@@ -233,10 +195,7 @@ export async function GET(req: Request) {
             _id: "$artwork",
             score: {
               $sum: {
-                $multiply: [
-                  "$cappedCount",
-                  "$weight",
-                ],
+                $multiply: ["$cappedCount", "$weight"],
               },
             },
             latestActivity: {
@@ -255,77 +214,78 @@ export async function GET(req: Request) {
         },
       ]);
 
-    let artworkIds: Types.ObjectId[] = ranked
-      .map((item) => item._id)
-      .filter((id): id is Types.ObjectId =>
-        Types.ObjectId.isValid(id)
-      );
+      let artworkIds: Types.ObjectId[] = ranked
+        .map((item) => item._id)
+        .filter((id): id is Types.ObjectId => Types.ObjectId.isValid(id));
 
-    if (artworkIds.length < limit) {
-      const remainingCount = limit - artworkIds.length;
-      const fallbackArtworks = await Artwork.find({
-        _id: { $nin: artworkIds },
-        isPublished: true,
-      })
-        .select("_id")
-        .sort({ likesCount: -1, createdAt: -1 })
-        .limit(remainingCount)
-        .lean();
-      
-      const fallbackIds = fallbackArtworks.map((art) => art._id as Types.ObjectId);
-      artworkIds = [...artworkIds, ...fallbackIds];
+      if (artworkIds.length < limit) {
+        const remainingCount = limit - artworkIds.length;
+        const fallbackArtworks = await Artwork.find({
+          _id: { $nin: artworkIds },
+          isPublished: true,
+        })
+          .select("_id")
+          .sort({ likesCount: -1, createdAt: -1 })
+          .limit(remainingCount)
+          .lean();
+
+        const fallbackIds = fallbackArtworks.map((art) => art._id as Types.ObjectId);
+        artworkIds = [...artworkIds, ...fallbackIds];
+      }
+
+      if (artworkIds.length > 0) {
+        const artworks = (await Artwork.find({
+          _id: {
+            $in: artworkIds,
+          },
+          isPublished: true,
+        })
+          .select("title imageUrl category likesCount artist")
+          .populate(
+            "artist",
+            "username artistProfile.displayName artistProfile.avatar"
+          )
+          .lean()) as unknown as TrendingArtwork[];
+
+        const scoreMap = new Map(
+          ranked.map((item) => [item._id.toString(), item.score])
+        );
+        const artworkMap = new Map(
+          artworks.map((artwork) => [artwork._id.toString(), artwork])
+        );
+
+        sortedArtworks = artworkIds
+          .map((id) => artworkMap.get(id.toString()))
+          .filter((artwork): artwork is TrendingArtwork => Boolean(artwork))
+          .slice(0, limit);
+
+        scoreMapEntries = Array.from(scoreMap.entries());
+
+        // Cache the newly fetched records
+        cacheStore.set(cacheKey, {
+          timestamp: Date.now(),
+          sortedArtworks,
+          scoreMapEntries,
+        });
+      }
     }
 
-    if (artworkIds.length === 0) {
+    if (sortedArtworks.length === 0) {
       return Response.json({
         success: true,
         artworks: [],
+        cache: isCacheHit ? "HIT" : "MISS",
       });
     }
 
-    const artworks =
-      (await Artwork.find({
-        _id: {
-          $in: artworkIds,
-        },
-        isPublished: true,
-      })
-        .select(
-          "title imageUrl category likesCount artist"
-        )
-        .populate(
-          "artist",
-          "username artistProfile.displayName artistProfile.avatar"
-        )
-        .lean()) as unknown as TrendingArtwork[];
-
-    const scoreMap = new Map(
-      ranked.map((item) => [
-        item._id.toString(),
-        item.score,
-      ])
+    const scoreMap = new Map<string, number>(scoreMapEntries);
+    const sortedArtworkIds = sortedArtworks.map((artwork) =>
+      artwork._id.toString()
     );
-    const artworkMap = new Map(
-      artworks.map((artwork) => [
-        artwork._id.toString(),
-        artwork,
-      ])
-    );
-    const sortedArtworks = artworkIds
-      .map((id) => artworkMap.get(id.toString()))
-      .filter(
-        (artwork): artwork is TrendingArtwork =>
-          Boolean(artwork)
-      )
-      .slice(0, limit);
-    const sortedArtworkIds =
-      sortedArtworks.map((artwork) =>
-        artwork._id.toString()
-      );
 
+    // Look up personal liked/saved statuses dynamically on each request
     const [likedArtworkIds, savedArtworkIds] =
-      session?.user?.id &&
-      sortedArtworkIds.length > 0
+      session?.user?.id && sortedArtworkIds.length > 0
         ? await Promise.all([
             Like.find({
               user: session.user.id,
@@ -347,50 +307,38 @@ export async function GET(req: Request) {
         : [[], []];
 
     const likedSet = new Set(
-      (
-        likedArtworkIds as unknown as ArtworkLike[]
-      ).map((like) =>
+      (likedArtworkIds as unknown as ArtworkLike[]).map((like) =>
         like.artwork.toString()
       )
     );
     const savedSet = new Set(
-      (
-        savedArtworkIds as unknown as ArtworkSave[]
-      ).map((save) =>
+      (savedArtworkIds as unknown as ArtworkSave[]).map((save) =>
         save.artwork.toString()
       )
     );
 
     return Response.json({
       success: true,
-      artworks: sortedArtworks.map(
-        (artwork) => {
-          const id = artwork._id.toString();
-          const artistUsername =
-            artwork.artist?.username;
+      cache: isCacheHit ? "HIT" : "MISS",
+      artworks: sortedArtworks.map((artwork) => {
+        const id = artwork._id.toString();
+        const artistUsername = artwork.artist?.username;
 
-          return {
-            id,
-            title: artwork.title,
-            imageUrl: artwork.imageUrl,
-            category: artwork.category,
-            artistUsername,
-            artistName:
-              artwork.artist?.artistProfile
-                ?.displayName ||
-              artistUsername,
-            artistAvatar:
-              artwork.artist?.artistProfile
-                ?.avatar || "",
-            likesCount:
-              artwork.likesCount || 0,
-            trendingScore:
-              scoreMap.get(id) || 0,
-            isLiked: likedSet.has(id),
-            isSaved: savedSet.has(id),
-          };
-        }
-      ),
+        return {
+          id,
+          title: artwork.title,
+          imageUrl: artwork.imageUrl,
+          category: artwork.category,
+          artistUsername,
+          artistName:
+            artwork.artist?.artistProfile?.displayName || artistUsername,
+          artistAvatar: artwork.artist?.artistProfile?.avatar || "",
+          likesCount: artwork.likesCount || 0,
+          trendingScore: scoreMap.get(id) || 0,
+          isLiked: likedSet.has(id),
+          isSaved: savedSet.has(id),
+        };
+      }),
     });
   } catch (error) {
     console.error(error);
@@ -398,8 +346,7 @@ export async function GET(req: Request) {
     return Response.json(
       {
         success: false,
-        message:
-          "Internal Server Error",
+        message: "Internal Server Error",
       },
       { status: 500 }
     );
