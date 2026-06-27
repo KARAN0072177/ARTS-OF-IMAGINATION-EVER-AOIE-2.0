@@ -20,6 +20,7 @@ interface AdminNavProps {
   initialPendingCount: number;
   initialPendingReportsCount: number;
   mobile?: boolean;
+  isCollapsed?: boolean;
 }
 
 const navItems = [
@@ -67,6 +68,7 @@ export default function AdminNavLinks({
   initialPendingCount,
   initialPendingReportsCount,
   mobile = false,
+  isCollapsed = false,
 }: AdminNavProps) {
   const pathname = usePathname();
   const socket = useSocket();
@@ -185,6 +187,46 @@ export default function AdminNavLinks({
                 >
                   <span className="h-1 w-1 rounded-full bg-white animate-pulse" />
                   {String(badge.count).padStart(2, "0")}
+                </span>
+              )}
+            </Link>
+          );
+        })}
+      </nav>
+    );
+  }
+
+  if (isCollapsed) {
+    return (
+      <nav className="mt-6 space-y-3 flex flex-col items-center">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = item.isExact
+            ? pathname === item.href
+            : pathname.startsWith(item.href) && item.href !== "/admin";
+
+          const badge = getBadgeInfo(item.badgeKey);
+
+          return (
+            <Link
+              key={item.label}
+              href={item.href}
+              title={item.label}
+              onClick={() => handleLinkClick(item.badgeKey)}
+              className={`relative flex h-11 w-11 items-center justify-center rounded-2xl transition ${
+                isActive
+                  ? "bg-slate-900 text-cyan-400 shadow-sm"
+                  : "bg-slate-100 text-slate-600 hover:bg-cyan-50 hover:text-cyan-700"
+              }`}
+            >
+              <Icon className="h-5 w-5" />
+              {badge && (
+                <span
+                  className={`absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-extrabold text-white shadow-xs ${
+                    item.badgeKey === "reports" ? "bg-rose-600 animate-bounce" : "bg-cyan-600 animate-bounce"
+                  }`}
+                >
+                  {badge.count}
                 </span>
               )}
             </Link>

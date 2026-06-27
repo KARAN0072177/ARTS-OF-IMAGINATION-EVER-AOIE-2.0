@@ -77,11 +77,10 @@ export default async function AdminReportsPage() {
   };
 
   const reports = [...rawReports].sort((a, b) => {
-    const weightA = statusWeight[a.status] || 99;
-    const weightB = statusWeight[b.status] || 99;
-    if (weightA !== weightB) {
-      return weightA - weightB;
-    }
+    // If one is pending and the other is not, show pending first for admin attention
+    if (a.status === "pending" && b.status !== "pending") return -1;
+    if (b.status === "pending" && a.status !== "pending") return 1;
+    // Otherwise, strictly newest date first
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
 
