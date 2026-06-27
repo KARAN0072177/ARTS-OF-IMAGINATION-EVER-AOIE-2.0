@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import Link from "next/link";
 import { Types } from "mongoose";
 import { getServerSession } from "next-auth";
@@ -96,7 +97,6 @@ function serializeComment(
     ),
   };
 }
-
 function formatDate(date: Date) {
   return new Intl.DateTimeFormat("en", {
     day: "2-digit",
@@ -105,6 +105,53 @@ function formatDate(date: Date) {
   }).format(new Date(date));
 }
 
+export async function generateMetadata({
+  params,
+}: ArtworkPageProps): Promise<Metadata> {
+  const { id } = await params;
+
+  if (!Types.ObjectId.isValid(id)) {
+    return {};
+  }
+
+  await connectDB();
+
+  const artwork = await Artwork.findById(id)
+    .populate("artist", "username artistProfile")
+    .lean();
+
+  if (!artwork) {
+    return {};
+  }
+
+  const artist = artwork.artist as unknown as PopulatedArtist;
+  const displayName = artist?.artistProfile?.displayName || artist?.username || "Anonymous Artist";
+  const ogImageUrl = `/api/artwork/${id}/og`;
+
+  return {
+    title: `${artwork.title} by ${displayName} | AOIE 2.0`,
+    description: artwork.description || `Check out ${artwork.title} by ${displayName} on Arts of Imagination Ever.`,
+    openGraph: {
+      title: artwork.title,
+      description: artwork.description || `Check out ${artwork.title} by ${displayName} on Arts of Imagination Ever.`,
+      type: "article",
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: artwork.title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: artwork.title,
+      description: artwork.description || `Check out ${artwork.title} by ${displayName} on Arts of Imagination Ever.`,
+      images: [ogImageUrl],
+    },
+  };
+}
 export default async function ArtworkPage({
   params,
 }: ArtworkPageProps) {

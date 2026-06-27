@@ -3,6 +3,7 @@ import "./globals.css";
 import Providers from "@/components/providers/Providers";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"),
   title: "AOIE 2.0",
   description: "Arts of Imagination Ever",
 };
