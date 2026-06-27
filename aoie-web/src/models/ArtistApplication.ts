@@ -24,6 +24,9 @@ export interface IArtistApplication
   adminNote: string;
   reviewedBy?: Types.ObjectId;
   reviewedAt?: Date;
+  aiEnhanced?: boolean;
+  aiModel?: string;
+  promptVersion?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -98,6 +101,21 @@ const ArtistApplicationSchema =
       },
 
       reviewedAt: Date,
+
+      aiEnhanced: {
+        type: Boolean,
+        default: false,
+      },
+
+      aiModel: {
+        type: String,
+        default: "",
+      },
+
+      promptVersion: {
+        type: String,
+        default: "",
+      },
     },
     {
       timestamps: true,

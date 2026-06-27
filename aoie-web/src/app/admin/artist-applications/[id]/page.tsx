@@ -34,6 +34,14 @@ type ApplicationDetail = {
   ownershipConfirmed: boolean;
   status: "pending" | "approved" | "rejected";
   adminNote?: string;
+  reviewedBy?: {
+    username?: string | null;
+    email?: string;
+  } | null;
+  reviewedAt?: Date;
+  aiEnhanced?: boolean;
+  aiModel?: string;
+  promptVersion?: string;
   createdAt: Date;
   user?: {
     username?: string | null;
@@ -85,6 +93,7 @@ export default async function ArtistApplicationDetailPage({
   const application =
     (await ArtistApplication.findById(id)
       .populate("user", "username email role")
+      .populate("reviewedBy", "username email")
       .lean()) as unknown as ApplicationDetail | null;
 
   if (!application) {
@@ -259,6 +268,13 @@ export default async function ArtistApplicationDetailPage({
           <ArtistApplicationReviewActions
             applicationId={application._id.toString()}
             disabled={application.status !== "pending"}
+            status={application.status}
+            adminNote={application.adminNote}
+            reviewedBy={application.reviewedBy?.username || application.reviewedBy?.email || null}
+            reviewedAt={application.reviewedAt ? new Date(application.reviewedAt).toISOString() : null}
+            aiEnhanced={application.aiEnhanced}
+            aiModel={application.aiModel}
+            promptVersion={application.promptVersion}
           />
         </div>
       </div>

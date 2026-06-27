@@ -57,6 +57,9 @@ export async function PATCH(
       typeof body.adminNote === "string"
         ? body.adminNote.trim().slice(0, 500)
         : "";
+    const aiEnhanced = body.aiEnhanced === true;
+    const aiModel = typeof body.aiModel === "string" ? body.aiModel : "";
+    const promptVersion = typeof body.promptVersion === "string" ? body.promptVersion : "";
 
     if (!action) {
       return Response.json(
@@ -95,6 +98,9 @@ export async function PATCH(
       session.user.id
     );
     application.reviewedAt = new Date();
+    application.aiEnhanced = aiEnhanced;
+    application.aiModel = aiModel;
+    application.promptVersion = promptVersion;
 
     if (action === "approve") {
       user.role = "artist";
