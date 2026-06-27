@@ -14,6 +14,7 @@ import {
   RefreshCw,
   ShieldAlert,
   ShieldCheck,
+  Sparkles,
   User,
   UserX,
   X,
@@ -69,6 +70,90 @@ interface AnalyticsMetrics {
   }[];
 }
 
+function renderFormattedNote(rawNote: string) {
+  if (!rawNote) return null;
+
+  const cleaned = rawNote
+    .replace(/^Subject:\s*.*$/gm, "")
+    .replace(/^Dear\s+[^,\n]+,?\s*/gm, "")
+    .trim();
+
+  const lines = cleaned.split("\n");
+  const blocks: React.ReactNode[] = [];
+  let currentBulletItems: React.ReactNode[] = [];
+
+  const parseInlineBold = (text: string) => {
+    const parts = text.split(/(\*\*.*?\*\*)/g);
+    return parts.map((part, idx) => {
+      if (part.startsWith("**") && part.endsWith("**")) {
+        return (
+          <strong key={idx} className="font-extrabold text-slate-950">
+            {part.slice(2, -2)}
+          </strong>
+        );
+      }
+      return part;
+    });
+  };
+
+  lines.forEach((line, index) => {
+    const trimmed = line.trim();
+    if (!trimmed) {
+      if (currentBulletItems.length > 0) {
+        blocks.push(
+          <ul key={`ul-${index}`} className="my-2 space-y-1 pl-4 list-disc text-slate-700">
+            {currentBulletItems}
+          </ul>
+        );
+        currentBulletItems = [];
+      }
+      return;
+    }
+
+    const bulletMatch = trimmed.match(/^[-•*]\s*(.*)$/);
+    if (bulletMatch) {
+      currentBulletItems.push(
+        <li key={`li-${index}`} className="leading-relaxed">
+          {parseInlineBold(bulletMatch[1])}
+        </li>
+      );
+    } else {
+      if (currentBulletItems.length > 0) {
+        blocks.push(
+          <ul key={`ul-${index}`} className="my-2 space-y-1 pl-4 list-disc text-slate-700">
+            {currentBulletItems}
+          </ul>
+        );
+        currentBulletItems = [];
+      }
+
+      if (trimmed.includes("- Team AOIE")) {
+        blocks.push(
+          <p key={`p-${index}`} className="mt-3 font-extrabold text-cyan-700">
+            {trimmed}
+          </p>
+        );
+      } else {
+        blocks.push(
+          <p key={`p-${index}`} className="my-1 leading-relaxed text-slate-700">
+            {parseInlineBold(trimmed)}
+          </p>
+        );
+      }
+    }
+  });
+
+  if (currentBulletItems.length > 0) {
+    blocks.push(
+      <ul key="ul-final" className="my-2 space-y-1 pl-4 list-disc text-slate-700">
+        {currentBulletItems}
+      </ul>
+    );
+  }
+
+  return <div className="space-y-1 text-xs">{blocks}</div>;
+}
+
 export default function ModerationLogExplorer({
   initialLogs,
   initialMetrics,
@@ -82,8 +167,38 @@ export default function ModerationLogExplorer({
   const [selectedLog, setSelectedLog] = useState<LogItem | null>(null);
   const [actionNote, setActionNote] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isEnhancing, setIsEnhancing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [feedback, setFeedback] = useState("");
+
+  async function handleEnhanceWithAI() {
+    if (!actionNote.trim() || isEnhancing || isProcessing) return;
+    setIsEnhancing(true);
+    setFeedback("");
+
+    try {
+      const response = await fetch("/api/admin/ai/enhance-note", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          draftNote: actionNote,
+          actionContext: "moderation",
+        }),
+      });
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || "Could not enhance operational note.");
+      }
+
+      setActionNote(data.enhancedNote);
+      setFeedback("Polished operational decision into bulleted SaaS enforcement note ✨");
+    } catch (err) {
+      setFeedback(err instanceof Error ? err.message : "AI enhancement failed.");
+    } finally {
+      setIsEnhancing(false);
+    }
+  }
 
   async function fetchLogs(status = filterStatus) {
     setIsLoading(true);
@@ -454,7 +569,11 @@ export default function ModerationLogExplorer({
                         <span className="capitalize">{act.action}</span>
                         <span className="font-normal text-slate-500">{new Date(act.timestamp).toLocaleString()}</span>
                       </div>
-                      {act.adminNote && <p className="mt-1 text-slate-600">{act.adminNote}</p>}
+                      {act.adminNote && (
+                        <div className="mt-2.5 rounded-2xl bg-slate-50 p-3.5 border border-slate-100 font-normal">
+                          {renderFormattedNote(act.adminNote)}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -463,13 +582,28 @@ export default function ModerationLogExplorer({
 
             {/* Execute Idempotent Enforcement Action */}
             <div className="space-y-4 border-t border-slate-100 pt-4">
-              <h4 className="text-sm font-extrabold text-slate-900">Execute Enforcement Action</h4>
+              <div className="flex items-center justify-between gap-2">
+                <h4 className="text-sm font-extrabold text-slate-900">Execute Enforcement Action</h4>
+                <button
+                  type="button"
+                  disabled={!actionNote.trim() || isEnhancing || isProcessing}
+                  onClick={handleEnhanceWithAI}
+                  className="group inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-rose-500 to-amber-600 px-3 py-1.5 text-xs font-bold text-white shadow-xs transition hover:opacity-90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {isEnhancing ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-3.5 w-3.5 text-rose-100 transition group-hover:scale-110" />
+                  )}
+                  <span>{isEnhancing ? "Structuring note..." : "Enhance with AI ✨"}</span>
+                </button>
+              </div>
 
               <textarea
                 value={actionNote}
                 onChange={(e) => setActionNote(e.target.value)}
-                rows={3}
-                disabled={isProcessing}
+                rows={5}
+                disabled={isProcessing || isEnhancing}
                 className="w-full resize-none rounded-2xl border border-slate-200 bg-white p-3 text-sm outline-none focus:border-cyan-400 focus:ring-4 focus:ring-cyan-100"
                 placeholder="Write operational notes explaining this enforcement decision..."
               />

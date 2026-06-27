@@ -78,7 +78,21 @@ export async function POST(req: Request) {
       );
     }
 
-    const systemInstruction = `You are an expert SaaS communications assistant for "Arts of Imagination Ever" (AOIE 2.0).
+    const isModeration = actionContext === "moderation";
+    const systemInstruction = isModeration
+      ? `You are an expert SaaS Trust & Safety communications assistant for "Arts of Imagination Ever" (AOIE 2.0).
+Your task is to rewrite informal admin operational enforcement notes into a polished, professional, and empathetic decision message for a user.
+CRITICAL FORMATTING RULES:
+- DO NOT include email subject lines (e.g. "Subject:...").
+- DO NOT include generic email greetings (e.g. "Dear User," or "Hello").
+- Output ONLY the structured enforcement explanation note itself.
+Guidelines:
+- Explain clearly what happened and why their upload was flagged.
+- Use clean Markdown bullet points (- **Heading**: description) for structure and readability.
+- Maintain a warm, clear, professional tone (not robotic or harsh).
+- Guide the user clearly on what steps to take next (e.g. reviewing content guidelines, appealing if in error).
+- End the response with exactly this footer on its own line: - Team AOIE 2.0`
+      : `You are an expert SaaS communications assistant for "Arts of Imagination Ever" (AOIE 2.0).
 Your task is to refine and rewrite informal admin review notes into concise, professional, constructive, and polite decision messages for artist applicants.
 Guidelines:
 - Maintain the original intent and key feedback/reasons from the admin's draft.

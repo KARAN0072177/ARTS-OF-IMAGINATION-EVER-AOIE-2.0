@@ -142,6 +142,63 @@ export async function sendArtistWarningEmail({
   });
 }
 
+function formatAdminNoteToHtml(rawNote: string) {
+  if (!rawNote) return "";
+
+  // Clean out any leftover "Subject: ..." or "Dear User," lines if present
+  const cleaned = rawNote
+    .replace(/^Subject:\s*.*$/gm, "")
+    .replace(/^Dear\s+[^,\n]+,?\s*/gm, "")
+    .trim();
+
+  const lines = cleaned.split("\n");
+  let htmlResult = "";
+  let inList = false;
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) {
+      if (inList) {
+        htmlResult += "</ul>";
+        inList = false;
+      }
+      continue;
+    }
+
+    // Escape HTML first, then restore bold formatting
+    let formattedLine = escapeHtml(trimmed).replace(
+      /\*\*(.*?)\*\*/g,
+      '<strong style="color:#0f172a;">$1</strong>'
+    );
+
+    const bulletMatch = formattedLine.match(/^[-•*]\s*(.*)$/);
+    if (bulletMatch) {
+      if (!inList) {
+        htmlResult +=
+          '<ul style="margin:12px 0;padding-left:20px;color:#334155;line-height:1.6;">';
+        inList = true;
+      }
+      htmlResult += `<li style="margin:6px 0;">${bulletMatch[1]}</li>`;
+    } else {
+      if (inList) {
+        htmlResult += "</ul>";
+        inList = false;
+      }
+      if (formattedLine.includes("- Team AOIE")) {
+        htmlResult += `<p style="margin:16px 0 0;font-weight:700;color:#0284c7;">${formattedLine}</p>`;
+      } else {
+        htmlResult += `<p style="margin:8px 0;line-height:1.6;color:#334155;">${formattedLine}</p>`;
+      }
+    }
+  }
+
+  if (inList) {
+    htmlResult += "</ul>";
+  }
+
+  return htmlResult;
+}
+
 export async function sendModerationWarningEmail({
   email,
   username,
@@ -169,16 +226,16 @@ export async function sendModerationWarningEmail({
         <p style="margin:16px 0 0;font-size:15px;line-height:1.7;color:#475569;">
           An automated moderation scan flagged a recent upload attempt associated with your account for violating our content guidelines regarding <strong style="color:#e11d48;">${escapeHtml(category)}</strong>.
         </p>
-        <div style="margin:24px 0;padding:18px;border:1px solid #fde68a;border-radius:12px;background:#fffbeb;">
-          <p style="margin:0;font-size:15px;font-weight:700;color:#b45309;">
+        <div style="margin:24px 0;padding:20px;border:1px solid #fde68a;border-radius:14px;background:#fffbeb;">
+          <p style="margin:0;font-size:15px;font-weight:800;color:#b45309;">
             Account Status: Strike ${strikeCount} Issued
           </p>
-          <p style="margin:8px 0 0;font-size:14px;line-height:1.6;color:#78350f;">
+          <p style="margin:6px 0 14px;font-size:14px;line-height:1.6;color:#78350f;">
             Please review our platform guidelines to ensure all future uploads remain compliant. Repeat violations may lead to temporary or permanent account suspension.
           </p>
           ${
             adminNote
-              ? `<p style="margin:12px 0 0;font-size:13px;line-height:1.6;color:#92400e;"><strong>Admin Note:</strong> ${escapeHtml(adminNote)}</p>`
+              ? `<div style="margin-top:14px;padding-top:14px;border-top:1px border #fef3c7;font-size:14px;">${formatAdminNoteToHtml(adminNote)}</div>`
               : ""
           }
         </div>
@@ -215,13 +272,13 @@ export async function sendModerationSuspensionEmail({
         <p style="margin:16px 0 0;font-size:15px;line-height:1.7;color:#475569;">
           Your AOIE account has been suspended following repeated content policy violations involving <strong style="color:#be123c;">${escapeHtml(category)}</strong>.
         </p>
-        <div style="margin:24px 0;padding:18px;border:1px solid #fecdd3;border-radius:12px;background:#fff1f2;">
-          <p style="margin:0;font-size:15px;font-weight:700;color:#be123c;">
+        <div style="margin:24px 0;padding:20px;border:1px solid #fecdd3;border-radius:14px;background:#fff1f2;">
+          <p style="margin:0;font-size:15px;font-weight:800;color:#be123c;">
             Enforcement Action: Account Access Suspended
           </p>
           ${
             adminNote
-              ? `<p style="margin:8px 0 0;font-size:13px;line-height:1.6;color:#9f1239;"><strong>Enforcement Reason:</strong> ${escapeHtml(adminNote)}</p>`
+              ? `<div style="margin-top:14px;padding-top:14px;border-top:1px border #ffe4e6;font-size:14px;">${formatAdminNoteToHtml(adminNote)}</div>`
               : ""
           }
         </div>
