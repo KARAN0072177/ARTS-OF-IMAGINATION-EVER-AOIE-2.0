@@ -192,6 +192,16 @@ export async function PATCH(
       }
     }
 
+    const pendingCount = await ArtworkReport.countDocuments({
+      status: "pending",
+    });
+
+    const { emitAdminEvent } = await import("@/lib/emitAdminEvent");
+    await emitAdminEvent({
+      event: "reports:count_update",
+      data: { pendingCount },
+    });
+
     return Response.json({
       success: true,
       status,

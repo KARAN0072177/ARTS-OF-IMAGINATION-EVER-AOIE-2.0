@@ -62,14 +62,28 @@ function statusStyle(status: ReportItem["status"]) {
 export default async function AdminReportsPage() {
   await connectDB();
 
-  const reports = (await ArtworkReport.find()
+  const rawReports = (await ArtworkReport.find()
     .populate("artwork", "title")
     .populate("reporter", "username email")
     .sort({
-      status: 1,
       createdAt: -1,
     })
     .lean()) as unknown as ReportItem[];
+
+  const statusWeight: Record<string, number> = {
+    pending: 1,
+    valid: 2,
+    invalid: 3,
+  };
+
+  const reports = [...rawReports].sort((a, b) => {
+    const weightA = statusWeight[a.status] || 99;
+    const weightB = statusWeight[b.status] || 99;
+    if (weightA !== weightB) {
+      return weightA - weightB;
+    }
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
 
   const pendingCount = reports.filter(
     (report) => report.status === "pending"

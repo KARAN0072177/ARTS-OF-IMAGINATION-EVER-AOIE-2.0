@@ -57,14 +57,28 @@ function statusStyle(status: ApplicationItem["status"]) {
 export default async function ArtistApplicationsPage() {
   await connectDB();
 
-  const applications =
+  const rawApplications =
     (await ArtistApplication.find()
       .populate("user", "username email")
       .sort({
-        status: 1,
         createdAt: -1,
       })
       .lean()) as unknown as ApplicationItem[];
+
+  const statusWeight: Record<string, number> = {
+    pending: 1,
+    approved: 2,
+    rejected: 3,
+  };
+
+  const applications = [...rawApplications].sort((a, b) => {
+    const weightA = statusWeight[a.status] || 99;
+    const weightB = statusWeight[b.status] || 99;
+    if (weightA !== weightB) {
+      return weightA - weightB;
+    }
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
 
   const pendingCount = applications.filter(
     (application) =>

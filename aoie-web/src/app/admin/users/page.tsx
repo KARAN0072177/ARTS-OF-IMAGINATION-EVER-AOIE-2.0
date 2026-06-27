@@ -21,6 +21,9 @@ type RawUserItem = {
     | "approved"
     | "rejected";
   usernameSetupRequired: boolean;
+  artistProfile?: {
+    avatar?: string;
+  };
 };
 
 function normalizeRole(role: string) {
@@ -61,7 +64,7 @@ export default async function AdminUsersPage() {
   ] = await Promise.all([
     User.find()
       .select(
-        "username email role isVerified authProviders artistApplicationStatus usernameSetupRequired createdAt"
+        "username email role isVerified authProviders artistApplicationStatus usernameSetupRequired artistProfile.avatar createdAt"
       )
       .sort({
         createdAt: -1,
@@ -100,6 +103,7 @@ export default async function AdminUsersPage() {
         ),
       usernameSetupRequired:
         Boolean(user.usernameSetupRequired),
+      avatar: user.artistProfile?.avatar || null,
     }));
 
   return (

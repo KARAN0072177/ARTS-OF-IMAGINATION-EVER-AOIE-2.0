@@ -30,6 +30,7 @@ export type AdminUserListItem = {
   authProviders?: string[];
   artistApplicationStatus: string;
   usernameSetupRequired: boolean;
+  avatar?: string | null;
 };
 
 const roleOptions = [
@@ -398,10 +399,24 @@ export default function AdminUsersExplorer({
               >
                 {/* Avatar + name */}
                 <div className="flex min-w-0 items-center gap-3.5">
-                  <div
-                    className={`relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-sm font-bold text-white shadow-sm transition-transform duration-200 group-hover:scale-105 ${getAvatarGradient(user.role)}`}
-                  >
-                    {getInitial(user)}
+                  <div className="relative h-10 w-10 shrink-0 transition-transform duration-200 group-hover:scale-105">
+                    <div
+                      className={`flex h-full w-full items-center justify-center overflow-hidden rounded-xl text-sm font-bold text-white shadow-sm ${
+                        user.avatar
+                          ? "bg-slate-100 border border-slate-200"
+                          : `bg-gradient-to-br ${getAvatarGradient(user.role)}`
+                      }`}
+                    >
+                      {user.avatar ? (
+                        <img
+                          src={user.avatar}
+                          alt={user.username || user.email}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        getInitial(user)
+                      )}
+                    </div>
                     {user.isVerified && (
                       <span className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-white shadow-sm">
                         <BadgeCheck className="h-3.5 w-3.5 text-cyan-500" />

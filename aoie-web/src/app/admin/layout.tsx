@@ -2,52 +2,16 @@ import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import {
-  BadgeCheck,
-  Bell,
   Brush,
-  ChevronRight,
-  Flag,
-  Images,
-  LayoutDashboard,
   LogOut,
   Shield,
-  Users,
 } from "lucide-react";
 
 import { authOptions } from "@/lib/auth";
-
-const navItems = [
-  {
-    label: "Overview",
-    href: "/admin",
-    icon: LayoutDashboard,
-  },
-  {
-    label: "Artist approvals",
-    href: "/admin/artist-applications",
-    icon: BadgeCheck,
-  },
-  {
-    label: "Artworks",
-    href: "/admin",
-    icon: Images,
-  },
-  {
-    label: "Reports",
-    href: "/admin/reports",
-    icon: Flag,
-  },
-  {
-    label: "Users",
-    href: "/admin/users",
-    icon: Users,
-  },
-  {
-    label: "Activity",
-    href: "/admin",
-    icon: Bell,
-  },
-];
+import { connectDB } from "@/lib/db";
+import ArtistApplication from "@/models/ArtistApplication";
+import ArtworkReport from "@/models/ArtworkReport";
+import AdminNavLinks from "@/components/admin/AdminNavLinks";
 
 export default async function AdminLayout({
   children,
@@ -67,6 +31,16 @@ export default async function AdminLayout({
   if (!isAdmin) {
     redirect("/feed");
   }
+
+  await connectDB();
+  const [pendingCount, pendingReportsCount] = await Promise.all([
+    ArtistApplication.countDocuments({
+      status: "pending",
+    }),
+    ArtworkReport.countDocuments({
+      status: "pending",
+    }),
+  ]);
 
   return (
     <div className="min-h-screen bg-[#f6f8fb] text-slate-950">
@@ -88,27 +62,10 @@ export default async function AdminLayout({
           </span>
         </Link>
 
-        <nav className="mt-8 space-y-1.5">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-
-            return (
-              <Link
-                key={item.label}
-                href={item.href}
-                className="group flex items-center justify-between rounded-2xl px-3 py-3 text-sm font-semibold text-slate-600 transition hover:bg-cyan-50 hover:text-cyan-800"
-              >
-                <span className="flex items-center gap-3">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-600 transition group-hover:bg-white group-hover:text-cyan-700">
-                    <Icon className="h-4 w-4" />
-                  </span>
-                  {item.label}
-                </span>
-                <ChevronRight className="h-4 w-4 opacity-0 transition group-hover:translate-x-0.5 group-hover:opacity-100" />
-              </Link>
-            );
-          })}
-        </nav>
+        <AdminNavLinks
+          initialPendingCount={pendingCount}
+          initialPendingReportsCount={pendingReportsCount}
+        />
 
         <div className="absolute inset-x-5 bottom-6 rounded-3xl border border-cyan-200 bg-cyan-50 p-4 text-cyan-950">
           <div className="flex items-center gap-3">
@@ -147,22 +104,11 @@ export default async function AdminLayout({
               </p>
             </div>
           </div>
-          <nav className="mt-4 flex gap-2 overflow-x-auto pb-1">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-
-              return (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  className="inline-flex shrink-0 items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-600"
-                >
-                  <Icon className="h-3.5 w-3.5" />
-                  {item.label}
-                </Link>
-              );
-            })}
-          </nav>
+          <AdminNavLinks
+            initialPendingCount={pendingCount}
+            initialPendingReportsCount={pendingReportsCount}
+            mobile
+          />
         </header>
 
         <main className="mx-auto max-w-7xl px-5 py-6 sm:px-8 lg:px-10 lg:py-10">

@@ -126,6 +126,16 @@ export async function PATCH(
       adminNote,
     });
 
+    const pendingCount = await ArtistApplication.countDocuments({
+      status: "pending",
+    });
+
+    const { emitAdminEvent } = await import("@/lib/emitAdminEvent");
+    await emitAdminEvent({
+      event: "artist_applications:count_update",
+      data: { pendingCount },
+    });
+
     return Response.json({
       success: true,
       status: application.status,

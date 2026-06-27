@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
+  AlertCircle,
   CheckCircle2,
   ImagePlus,
   Loader2,
@@ -51,6 +52,7 @@ export default function ArtistApplicationForm({
     useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [statusType, setStatusType] = useState<"info" | "error" | "success">("info");
 
   useEffect(() => {
     return () => {
@@ -125,16 +127,56 @@ export default function ArtistApplicationForm({
     event: React.FormEvent<HTMLFormElement>
   ) {
     event.preventDefault();
-    setLoading(true);
     setMessage("");
 
-    try {
-      if (samples.length < 2) {
-        throw new Error(
-          "Please upload at least 2 sample artwork images."
-        );
-      }
+    if (!displayName.trim()) {
+      setStatusType("error");
+      setMessage("Please enter your public artist display name.");
+      return;
+    }
 
+    if (bio.trim().length < 40) {
+      setStatusType("error");
+      setMessage(
+        `Artist bio must be at least 40 characters long (currently ${bio.trim().length}/40 characters). Please elaborate on your background, style, or creative process.`
+      );
+      return;
+    }
+
+    if (!website.trim()) {
+      setStatusType("error");
+      setMessage(
+        "Please provide a valid portfolio or social media link (e.g. https://instagram.com/yourname)."
+      );
+      return;
+    }
+
+    if (selectedCategories.length === 0) {
+      setStatusType("error");
+      setMessage(
+        "Please select at least 1 main category that best describes your art."
+      );
+      return;
+    }
+
+    if (samples.length < 2) {
+      setStatusType("error");
+      setMessage("Please upload at least 2 sample artwork images for admin review.");
+      return;
+    }
+
+    if (!ownershipConfirmed) {
+      setStatusType("error");
+      setMessage(
+        "Please check the confirmation box verifying you own or have permission to publish this artwork."
+      );
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      setStatusType("info");
       setMessage("Uploading sample images...");
 
       const sampleFormData = new FormData();
@@ -186,12 +228,14 @@ export default function ArtistApplicationForm({
         );
       }
 
+      setStatusType("success");
       setMessage(
-        "Application submitted. Your account will stay as a user until admin approval."
+        "Application submitted! Your account will stay as a user until admin approval."
       );
       router.refresh();
       router.push("/profile");
     } catch (error) {
+      setStatusType("error");
       setMessage(
         error instanceof Error
           ? error.message
@@ -222,7 +266,18 @@ export default function ArtistApplicationForm({
         </label>
 
         <label className="grid gap-2 text-sm font-semibold text-slate-700">
-          Artist bio
+          <div className="flex items-center justify-between">
+            <span>Artist bio <span className="text-rose-500">*</span></span>
+            <span
+              className={`text-xs font-semibold ${
+                bio.trim().length < 40 ? "text-amber-600" : "text-emerald-600"
+              }`}
+            >
+              {bio.trim().length < 40
+                ? `Min 40 characters required (${40 - bio.trim().length} more needed)`
+                : "Minimum met ✓"}
+            </span>
+          </div>
           <textarea
             value={bio}
             onChange={(event) =>
@@ -230,12 +285,16 @@ export default function ArtistApplicationForm({
             }
             maxLength={800}
             rows={5}
-            className="resize-none rounded-2xl border border-slate-200 px-4 py-3 text-base text-slate-950 outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-100"
+            className={`resize-none rounded-2xl border px-4 py-3 text-base text-slate-950 outline-none transition focus:ring-4 ${
+              bio.length > 0 && bio.trim().length < 40
+                ? "border-amber-300 focus:border-amber-400 focus:ring-amber-100"
+                : "border-slate-200 focus:border-cyan-400 focus:ring-cyan-100"
+            }`}
             placeholder="Tell admins about your style, process, and what you create. Minimum 40 characters."
           />
-          <span className="text-xs font-medium text-slate-500">
+          <div className="flex justify-end text-xs font-medium text-slate-500">
             {bio.length}/800
-          </span>
+          </div>
         </label>
 
         <div className="grid gap-5 sm:grid-cols-2">
@@ -394,9 +453,23 @@ export default function ArtistApplicationForm({
         </label>
 
         {message && (
-          <div className="flex items-start gap-2 rounded-2xl bg-cyan-50 p-4 text-sm font-medium text-cyan-800">
-            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
-            {message}
+          <div
+            className={`flex items-start gap-2.5 rounded-2xl p-4 text-sm font-semibold border transition-all ${
+              statusType === "error"
+                ? "bg-rose-50 border-rose-200 text-rose-800"
+                : statusType === "success"
+                ? "bg-emerald-50 border-emerald-200 text-emerald-800"
+                : "bg-cyan-50 border-cyan-200 text-cyan-800"
+            }`}
+          >
+            {statusType === "error" ? (
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-rose-600" />
+            ) : statusType === "success" ? (
+              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+            ) : (
+              <Loader2 className="mt-0.5 h-4 w-4 shrink-0 animate-spin text-cyan-600" />
+            )}
+            <div className="flex-1">{message}</div>
           </div>
         )}
 

@@ -66,22 +66,62 @@ export async function POST(req: Request) {
     const ownershipConfirmed =
       body.ownershipConfirmed === true;
 
-    if (
-      !displayName ||
-      displayName.length > 60 ||
-      bio.length < 40 ||
-      bio.length > 800 ||
-      !website ||
-      website.length > 240 ||
-      categories.length === 0 ||
-      sampleLinks.length < 2 ||
-      !ownershipConfirmed
-    ) {
+    if (!displayName) {
+      return Response.json(
+        { success: false, message: "Artist display name is required." },
+        { status: 400 }
+      );
+    }
+    if (displayName.length > 60) {
+      return Response.json(
+        { success: false, message: "Artist display name cannot exceed 60 characters." },
+        { status: 400 }
+      );
+    }
+    if (bio.length < 40) {
       return Response.json(
         {
           success: false,
-          message:
-            "Please complete all required artist application fields.",
+          message: `Artist bio must be at least 40 characters long (currently ${bio.length} characters).`,
+        },
+        { status: 400 }
+      );
+    }
+    if (bio.length > 800) {
+      return Response.json(
+        { success: false, message: "Artist bio cannot exceed 800 characters." },
+        { status: 400 }
+      );
+    }
+    if (!website) {
+      return Response.json(
+        { success: false, message: "Portfolio or social media link is required." },
+        { status: 400 }
+      );
+    }
+    if (website.length > 240) {
+      return Response.json(
+        { success: false, message: "Portfolio link cannot exceed 240 characters." },
+        { status: 400 }
+      );
+    }
+    if (categories.length === 0) {
+      return Response.json(
+        { success: false, message: "Please select at least 1 main category." },
+        { status: 400 }
+      );
+    }
+    if (sampleLinks.length < 2) {
+      return Response.json(
+        { success: false, message: "Please upload at least 2 sample artwork images." },
+        { status: 400 }
+      );
+    }
+    if (!ownershipConfirmed) {
+      return Response.json(
+        {
+          success: false,
+          message: "You must confirm ownership/permission of the artwork.",
         },
         { status: 400 }
       );
@@ -151,6 +191,16 @@ export async function POST(req: Request) {
       location,
       website,
       categories,
+    });
+
+    const pendingCount = await ArtistApplication.countDocuments({
+      status: "pending",
+    });
+
+    const { emitAdminEvent } = await import("@/lib/emitAdminEvent");
+    await emitAdminEvent({
+      event: "artist_applications:count_update",
+      data: { pendingCount },
     });
 
     return Response.json(
