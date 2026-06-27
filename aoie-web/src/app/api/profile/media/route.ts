@@ -124,6 +124,25 @@ export async function POST(req: Request) {
     const bytes =
       await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
+
+    const { checkImageSafety } = await import("@/lib/checkImageSafety");
+    const safetyResult = await checkImageSafety(buffer, {
+      userId: session.user.id,
+      route: "/api/profile/media",
+    });
+
+    if (!safetyResult.safe) {
+      return Response.json(
+        {
+          success: false,
+          flagged: true,
+          category: safetyResult.category,
+          message: safetyResult.message,
+        },
+        { status: 400 }
+      );
+    }
+
     const extension = getExtension(file);
     const fileName = `${crypto.randomUUID()}.${extension}`;
     const key = `profiles/${session.user.id}/${type}/${fileName}`;

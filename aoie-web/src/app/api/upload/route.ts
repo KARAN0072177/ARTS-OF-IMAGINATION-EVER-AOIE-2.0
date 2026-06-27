@@ -96,6 +96,7 @@ export async function POST(
       );
     }
 
+    // Pre-buffer size check to prevent memory spikes and OOM
     if (file.size > maxFileSize) {
       return Response.json(
         {
@@ -112,6 +113,25 @@ export async function POST(
 
     const buffer =
       Buffer.from(bytes);
+
+    // Automated Rekognition content moderation scan before reaching S3
+    const { checkImageSafety } = await import("@/lib/checkImageSafety");
+    const safetyResult = await checkImageSafety(buffer, {
+      userId: session.user.id,
+      route: "/api/upload",
+    });
+
+    if (!safetyResult.safe) {
+      return Response.json(
+        {
+          success: false,
+          flagged: true,
+          category: safetyResult.category,
+          message: safetyResult.message,
+        },
+        { status: 400 }
+      );
+    }
 
     let placeholderUrl = "";
     try {

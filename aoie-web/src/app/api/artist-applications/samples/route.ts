@@ -71,6 +71,25 @@ export async function POST(req: Request) {
 
       const bytes = await file.arrayBuffer();
       const buffer = Buffer.from(bytes);
+
+      const { checkImageSafety } = await import("@/lib/checkImageSafety");
+      const safetyResult = await checkImageSafety(buffer, {
+        userId: session.user.id,
+        route: "/api/artist-applications/samples",
+      });
+
+      if (!safetyResult.safe) {
+        return Response.json(
+          {
+            success: false,
+            flagged: true,
+            category: safetyResult.category,
+            message: safetyResult.message,
+          },
+          { status: 400 }
+        );
+      }
+
       const fileExtension =
         file.name.split(".").pop()?.toLowerCase() ||
         file.type.split("/")[1] ||

@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  AlertCircle,
   CheckCircle2,
   ImagePlus,
   Loader2,
@@ -311,8 +312,15 @@ export default function UploadArtworkForm() {
         </div>
 
         {error && (
-          <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-            {error}
+          <div
+            className={`flex items-start gap-2.5 rounded-xl p-4 text-sm font-semibold border ${
+              error.includes("violate") || error.includes("guidelines")
+                ? "bg-rose-50 border-rose-200 text-rose-800"
+                : "bg-red-50 border-red-200 text-red-700"
+            }`}
+          >
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-rose-600" />
+            <div className="flex-1">{error}</div>
           </div>
         )}
 
