@@ -28,9 +28,12 @@ const ALLOWED_MIME_TYPES = [
 export interface ModerationResult {
   safe: boolean;
   category?: string;
-  message?: string;
-  confidence?: number;
+  parentCategory?: string;
   label?: string;
+  confidence?: number;
+  appliedThreshold?: number;
+  fileType?: string;
+  message?: string;
 }
 
 export async function checkImageSafety(
@@ -44,6 +47,7 @@ export async function checkImageSafety(
       return {
         safe: false,
         category: "Invalid Format",
+        fileType: detectedType?.mime || "unknown",
         message: "Invalid file signature. Please upload a genuine JPG, PNG, WEBP, or GIF image.",
       };
     }
@@ -88,8 +92,11 @@ export async function checkImageSafety(
         return {
           safe: false,
           category: displayCategory,
-          confidence,
+          parentCategory: parentName,
           label: name,
+          confidence: Math.round(confidence * 100) / 100,
+          appliedThreshold: threshold,
+          fileType: detectedType.mime,
           message: `This image appears to violate our content guidelines regarding ${displayCategory}. If you believe this is an error, please contact support.`,
         };
       }
@@ -98,7 +105,6 @@ export async function checkImageSafety(
     return { safe: true };
   } catch (error) {
     console.error("Rekognition Moderation Error:", error);
-    // Fail securely if Rekognition service throws unhandled exception
     return { safe: true };
   }
 }

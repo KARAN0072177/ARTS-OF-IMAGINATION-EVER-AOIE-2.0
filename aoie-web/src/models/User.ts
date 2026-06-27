@@ -34,6 +34,10 @@ export interface IUser extends Document {
   verificationToken?: string;
   verificationTokenExpiry?: Date;
 
+  moderationStrikes?: number;
+  isSuspended?: boolean;
+  suspendedUntil?: Date | null;
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -132,6 +136,21 @@ const UserSchema = new Schema<IUser>(
     verificationToken: String,
 
     verificationTokenExpiry: Date,
+
+    moderationStrikes: {
+      type: Number,
+      default: 0,
+    },
+
+    isSuspended: {
+      type: Boolean,
+      default: false,
+    },
+
+    suspendedUntil: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,

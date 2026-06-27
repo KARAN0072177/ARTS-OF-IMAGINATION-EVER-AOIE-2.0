@@ -10,6 +10,7 @@ import {
   Flag,
   Images,
   LayoutDashboard,
+  ShieldAlert,
   Users,
 } from "lucide-react";
 
@@ -44,6 +45,11 @@ const navItems = [
     href: "/admin/reports",
     icon: Flag,
     badgeKey: "reports",
+  },
+  {
+    label: "Moderation",
+    href: "/admin/moderation",
+    icon: ShieldAlert,
   },
   {
     label: "Users",

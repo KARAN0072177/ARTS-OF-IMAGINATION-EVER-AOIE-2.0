@@ -79,6 +79,22 @@ export async function POST(req: Request) {
       });
 
       if (!safetyResult.safe) {
+        const ModerationLog = (await import("@/models/ModerationLog")).default;
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + 365);
+
+        await ModerationLog.create({
+          user: session.user.id,
+          route: "/api/artist-applications/samples",
+          label: safetyResult.label || safetyResult.category || "Unsafe",
+          parentCategory: safetyResult.parentCategory || "",
+          confidence: safetyResult.confidence || 0,
+          appliedThreshold: safetyResult.appliedThreshold || 85,
+          fileSize: buffer.length,
+          fileType: safetyResult.fileType || file.type || "",
+          expiresAt,
+        });
+
         return Response.json(
           {
             success: false,
