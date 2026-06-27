@@ -12,7 +12,7 @@ export default async function AdminModerationPage() {
   const [rawLogs, totalCount, pendingCount, topCategories, topRoutes, repeatOffendersRaw] =
     await Promise.all([
       ModerationLog.find()
-        .populate("user", "username email role moderationStrikes isSuspended")
+        .populate("user", "username email role moderationStrikes isSuspended artistProfile")
         .sort({ createdAt: -1 })
         .limit(100)
         .lean(),

@@ -27,6 +27,9 @@ interface LogUser {
   role: string;
   moderationStrikes?: number;
   isSuspended?: boolean;
+  artistProfile?: {
+    avatar?: string;
+  };
 }
 
 interface ActionEntry {
@@ -362,7 +365,7 @@ export default function ModerationLogExplorer({
               <div key={user._id} className="flex items-center justify-between py-2 text-sm">
                 <div className="min-w-0">
                   <p className="truncate font-bold text-slate-950">
-                    {user.username || user.email}
+                    {user.username || "Username pending"}
                   </p>
                   <p className="text-xs text-slate-500">
                     Strikes: {user.moderationStrikes || 0} {user.isSuspended && "• Suspended"}
@@ -441,15 +444,20 @@ export default function ModerationLogExplorer({
                   <tr key={log._id} className="transition hover:bg-slate-50/80">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600 font-bold text-xs">
-                          <User className="h-4 w-4" />
-                        </span>
+                        {log.user?.artistProfile?.avatar ? (
+                          <img
+                            src={log.user.artistProfile.avatar}
+                            alt={log.user.username || "Avatar"}
+                            className="h-9 w-9 shrink-0 rounded-xl object-cover border border-slate-200"
+                          />
+                        ) : (
+                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600 font-bold text-xs">
+                            <User className="h-4 w-4" />
+                          </span>
+                        )}
                         <div className="min-w-0">
                           <p className="truncate font-bold text-slate-950">
                             {log.user?.username || "Username pending"}
-                          </p>
-                          <p className="truncate text-xs font-mono text-slate-500">
-                            {log.user?.email || "No email"}
                           </p>
                           <p className="text-[11px] font-semibold text-slate-400">
                             Strikes: {log.user?.moderationStrikes || 0}
