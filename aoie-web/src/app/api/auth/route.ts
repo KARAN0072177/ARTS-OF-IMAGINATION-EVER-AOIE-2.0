@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 
 import { sendVerificationEmail } from "@/lib/sendVerificationEmail";
+import { logPlatformActivity } from "@/lib/telemetry";
 
 export async function POST(req: Request) {
   try {
@@ -72,6 +73,26 @@ export async function POST(req: Request) {
       username,
       token: verificationToken,
     });
+
+    const ip = req.headers.get("x-forwarded-for") || "127.0.0.1";
+    const userAgent = req.headers.get("user-agent") || "unknown";
+
+    logPlatformActivity({
+      category: "AUTH",
+      severity: "INFO",
+      eventType: "USER_REGISTERED",
+      actor: {
+        userId: user._id,
+        username: user.username || "",
+        email: user.email,
+        ipAddress: ip,
+        userAgent,
+      },
+      details: {
+        route: "/api/auth",
+        method: "POST",
+      },
+    }).catch((err) => console.error("Telemetry Register Error:", err));
 
     return Response.json(
       {

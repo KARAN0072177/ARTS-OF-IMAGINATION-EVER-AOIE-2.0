@@ -1,5 +1,12 @@
 import { connectDB } from "@/lib/db";
 import User from "@/models/User";
+import {
+  logPlatformActivity,
+  trackFailedLoginAttempt,
+  extractClientIp,
+  isIpBlocked,
+  blockIpFor30Mins,
+} from "@/lib/telemetry";
 
 import bcrypt from "bcryptjs";
 
@@ -111,9 +118,25 @@ export const authOptions: AuthOptions = {
         password: {},
       },
 
-      async authorize(credentials) {
+      async authorize(credentials, req) {
         try {
           await connectDB();
+
+          const clientInfo = extractClientIp(req?.headers);
+          if (isIpBlocked(clientInfo.ipAddress)) {
+            logPlatformActivity({
+              category: "SECURITY",
+              severity: "EMERGENCY",
+              eventType: "BLOCKED_IP_LOGIN_ATTEMPT",
+              actor: { email: credentials?.email || "unknown", username: "blocked-ip", ...clientInfo },
+              details: {
+                route: "/api/auth/callback/credentials",
+                attackVector: "30-Minute IP Lockout Active",
+                payloadSnippet: `Blocked IP ${clientInfo.ipAddress} attempted login.`,
+              },
+            }).catch(() => {});
+            throw new Error("IP temporarily blocked for 30 minutes due to excessive failed login attempts.");
+          }
 
           const email = credentials?.email;
           const password = credentials?.password;
@@ -129,6 +152,30 @@ export const authOptions: AuthOptions = {
           });
 
           if (!user) {
+            const { count, isBruteForce } = trackFailedLoginAttempt(email.toLowerCase());
+            if (isBruteForce) {
+              blockIpFor30Mins(clientInfo.ipAddress);
+              logPlatformActivity({
+                category: "SECURITY",
+                severity: "CRITICAL",
+                eventType: "AUTH_BRUTE_FORCE",
+                actor: { email: email.toLowerCase(), username: "unknown", ...clientInfo },
+                details: {
+                  route: "/api/auth/callback/credentials",
+                  attackVector: `Brute-Force Password Surge (${count} failed attempts in 60s). IP blocked for 30 mins.`,
+                  failureCount: count,
+                  payloadSnippet: `Repeated invalid credentials targeting email ${email}`,
+                },
+              }).catch(() => {});
+            } else {
+              logPlatformActivity({
+                category: "AUTH",
+                severity: "WARNING",
+                eventType: "FAILED_LOGIN_ATTEMPT",
+                actor: { email: email.toLowerCase(), username: "unknown", ...clientInfo },
+                details: { route: "/api/auth/callback/credentials", attackVector: "Non-existent Account", failureCount: count },
+              }).catch(() => {});
+            }
             throw new Error(
               "Invalid credentials"
             );
@@ -153,10 +200,43 @@ export const authOptions: AuthOptions = {
             );
 
           if (!isPasswordCorrect) {
+            const { count, isBruteForce } = trackFailedLoginAttempt(user.email);
+            if (isBruteForce) {
+              blockIpFor30Mins(clientInfo.ipAddress);
+              logPlatformActivity({
+                category: "SECURITY",
+                severity: "CRITICAL",
+                eventType: "AUTH_BRUTE_FORCE",
+                actor: { email: user.email, username: user.username || "", ...clientInfo },
+                details: {
+                  route: "/api/auth/callback/credentials",
+                  attackVector: `Brute-Force Password Surge (${count} failed attempts in 60s). IP blocked for 30 mins.`,
+                  failureCount: count,
+                  payloadSnippet: `Repeated invalid credentials targeting account ${user.email}`,
+                },
+              }).catch(() => {});
+            } else {
+              logPlatformActivity({
+                category: "AUTH",
+                severity: "WARNING",
+                eventType: "FAILED_LOGIN_ATTEMPT",
+                actor: { email: user.email, username: user.username || "", ...clientInfo },
+                details: { route: "/api/auth/callback/credentials", attackVector: "Invalid Password", failureCount: count },
+              }).catch(() => {});
+            }
+
             throw new Error(
               "Invalid credentials"
             );
           }
+
+          logPlatformActivity({
+            category: "AUTH",
+            severity: "INFO",
+            eventType: "USER_LOGIN_SUCCESS",
+            actor: { userId: user._id, email: user.email, username: user.username || "", ...clientInfo },
+            details: { route: "/api/auth/callback/credentials" },
+          }).catch(() => {});
 
           return {
             id: user._id.toString(),
@@ -269,6 +349,44 @@ export const authOptions: AuthOptions = {
 
   pages: {
     signIn: "/login",
+  },
+
+  events: {
+    async signIn({ user, account, isNewUser }) {
+      if (account?.provider === "google") {
+        logPlatformActivity({
+          category: "AUTH",
+          severity: "INFO",
+          eventType: isNewUser ? "USER_REGISTERED_GOOGLE" : "USER_LOGIN_GOOGLE",
+          actor: {
+            userId: user.id,
+            email: user.email || "",
+            username: user.username || "",
+          },
+          details: {
+            route: "/api/auth/callback/google",
+            metadata: { provider: "google" },
+          },
+        }).catch(() => {});
+      }
+    },
+    async signOut({ token }) {
+      if (token?.id) {
+        logPlatformActivity({
+          category: "AUTH",
+          severity: "INFO",
+          eventType: "USER_LOGOUT",
+          actor: {
+            userId: token.id as string,
+            email: (token.email as string) || "",
+            username: (token.username as string) || "",
+          },
+          details: {
+            route: "/api/auth/signout",
+          },
+        }).catch(() => {});
+      }
+    },
   },
 
   secret: process.env.NEXTAUTH_SECRET,

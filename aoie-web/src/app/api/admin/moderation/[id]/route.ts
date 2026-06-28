@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 import ModerationLog from "@/models/ModerationLog";
 import User from "@/models/User";
+import { logPlatformActivity } from "@/lib/telemetry";
 
 interface RouteProps {
   params: Promise<{
@@ -141,6 +142,22 @@ export async function PATCH(req: Request, { params }: RouteProps) {
       targetUser.moderationStrikes = (targetUser.moderationStrikes || 0) + 1;
       targetUser.isSuspended = true;
       await targetUser.save();
+
+      logPlatformActivity({
+        category: "MODERATION",
+        severity: "CRITICAL",
+        eventType: "ADMIN_SUSPENDED_USER",
+        actor: {
+          userId: adminObjectId,
+          email: session.user.email || "",
+        },
+        details: {
+          route: `/api/admin/moderation/${id}`,
+          method: "PATCH",
+          attackVector: `Target User: ${targetUser.email}`,
+          payloadSnippet: adminNote || "Admin enforcement suspension.",
+        },
+      }).catch(() => {});
 
       try {
         const { sendModerationSuspensionEmail } = await import("@/lib/sendArtworkReportEmail");
