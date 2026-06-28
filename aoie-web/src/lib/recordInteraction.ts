@@ -44,6 +44,12 @@ export async function recordInteraction({
     return null;
   }
 
+  if (type === "view") {
+    await Artwork.findByIdAndUpdate(artworkId, {
+      $inc: { views: 1 },
+    });
+  }
+
   return UserInteraction.create({
     user: userId,
     artwork: artworkId,

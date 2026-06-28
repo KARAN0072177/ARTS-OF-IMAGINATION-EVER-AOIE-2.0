@@ -121,64 +121,65 @@ export default function ArtistApplicationReviewActions({
     }
   }
 
-  // Render Historical Audit Record Card if application is already reviewed
   if (disabled) {
     const isApproved = status === "approved";
     return (
-      <div className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-        <div className="flex items-start justify-between gap-3 border-b border-slate-100 pb-4">
+      <div className="rounded-3xl border border-slate-800/80 bg-slate-900/60 p-6 backdrop-blur-2xl shadow-xl space-y-5 text-slate-100">
+        <div className="flex items-start justify-between gap-3 border-b border-slate-800 pb-4">
           <div className="flex items-center gap-3">
             <span
-              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl ${
-                isApproved ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"
+              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border ${
+                isApproved
+                  ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
+                  : "bg-rose-500/20 text-rose-300 border-rose-500/40"
               }`}
             >
               {isApproved ? <CheckCircle2 className="h-5 w-5" /> : <XCircle className="h-5 w-5" />}
             </span>
             <div>
-              <h2 className="text-lg font-extrabold tracking-tight text-slate-950">
+              <h2 className="text-lg font-black tracking-tight text-white">
                 Review Decision Audit
               </h2>
-              <p className="text-xs font-semibold text-slate-500">
+              <p className="text-xs font-bold text-slate-400">
                 {isApproved ? "Application Approved" : "Application Rejected"}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="mt-4 space-y-4">
-          <div className="rounded-2xl bg-slate-50 p-4">
+        <div className="space-y-4">
+          <div className="rounded-2xl bg-slate-950/80 border border-slate-800 p-4">
             <div className="flex items-center justify-between gap-2">
-              <p className="text-xs font-extrabold uppercase tracking-wider text-slate-500">
-                Decision Note
+              <p className="text-xs font-black uppercase tracking-wider text-slate-400">
+                Recorded Note
               </p>
               {initialAiEnhanced && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-cyan-50 px-2 py-0.5 text-[11px] font-bold text-cyan-800 ring-1 ring-cyan-100">
-                  <Sparkles className="h-3 w-3 text-cyan-600" />
-                  AI Enhanced ({initialAiModel || "gpt-4o-mini"} • {initialPromptVersion || "v1.0.0"})
+                <span className="inline-flex items-center gap-1 rounded-full bg-cyan-500/20 px-2.5 py-0.5 text-[10px] font-black text-cyan-300 border border-cyan-500/30">
+                  <Sparkles className="h-3 w-3 text-cyan-400" />
+                  AI Enhanced ({initialAiModel || "gpt-4o-mini"})
                 </span>
               )}
             </div>
-            <p className="mt-2 text-sm leading-6 text-slate-700 whitespace-pre-wrap">
-              {initialNote || <span className="italic text-slate-400">No admin note recorded.</span>}
+            <p className="mt-2 text-xs leading-relaxed text-slate-300 whitespace-pre-wrap font-medium">
+              {initialNote || <span className="italic text-slate-500">No admin note recorded.</span>}
             </p>
           </div>
 
-          <div className="grid gap-2 text-xs font-medium text-slate-500 border-t border-slate-100 pt-3">
+          <div className="grid gap-2 text-xs font-medium text-slate-400 border-t border-slate-800 pt-3">
             {reviewedBy && (
               <div className="flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-slate-600">
-                  <UserCheck className="h-3.5 w-3.5 text-slate-400" /> Reviewed by
+                <span className="flex items-center gap-1.5 text-slate-400">
+                  <UserCheck className="h-3.5 w-3.5 text-slate-500" /> Reviewed By
                 </span>
-                <span className="font-bold text-slate-900">{reviewedBy}</span>
+                <span className="font-extrabold text-white">{reviewedBy}</span>
               </div>
             )}
             {reviewedAt && (
               <div className="flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-slate-600">
-                  <Clock className="h-3.5 w-3.5 text-slate-400" /> Review timestamp
+                <span className="flex items-center gap-1.5 text-slate-400">
+                  <Clock className="h-3.5 w-3.5 text-slate-500" /> Timestamp
                 </span>
-                <span className="font-semibold text-slate-800">
+                <span className="font-mono font-bold text-slate-300">
                   {new Date(reviewedAt).toLocaleString("en-US", {
                     month: "short",
                     day: "numeric",
@@ -196,44 +197,47 @@ export default function ArtistApplicationReviewActions({
   }
 
   return (
-    <div className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-      <div className="flex items-start gap-3">
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-cyan-50 text-cyan-700 ring-1 ring-cyan-100">
+    <div className="rounded-3xl border border-slate-800/80 bg-slate-900/60 p-6 backdrop-blur-2xl shadow-xl space-y-5 text-slate-100">
+      <div className="flex items-start gap-3.5">
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-cyan-950/80 text-cyan-400 border border-cyan-500/30 shadow-inner">
           <ShieldCheck className="h-5 w-5" />
         </span>
         <div>
-          <h2 className="text-xl font-extrabold tracking-tight">Review decision</h2>
-          <p className="mt-1 text-sm leading-6 text-slate-600">
-            Approving converts the user into an artist and unlocks uploads.
+          <h2 className="text-xl font-black tracking-tight text-white">
+            Review Application Case
+          </h2>
+          <p className="mt-1 text-xs leading-relaxed text-slate-400">
+            Approving grants creator access and unlocks upload privileges on the platform.
           </p>
         </div>
       </div>
 
-      <div className="mt-5 rounded-2xl border border-cyan-100 bg-cyan-50 p-4">
-        <div className="flex items-center gap-2 text-sm font-bold text-cyan-900">
-          <Mail className="h-4 w-4" />
-          User notification
+      <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-4">
+        <div className="flex items-center gap-2 text-xs font-black text-cyan-400 uppercase tracking-wider">
+          <Mail className="h-4 w-4" /> User Email Dispatch
         </div>
-        <p className="mt-1 text-sm leading-6 text-cyan-800/80">
-          AOIE will send a polished decision email immediately after you submit.
+        <p className="mt-1.5 text-xs leading-relaxed text-slate-400 font-medium">
+          AOIE will automatically send a decision outcome email immediately after submission.
         </p>
       </div>
 
-      <div className="mt-5 space-y-2">
+      <div className="space-y-2">
         <div className="flex items-center justify-between gap-2">
-          <label className="text-sm font-semibold text-slate-700">Admin note</label>
+          <label className="text-xs font-black uppercase tracking-wider text-slate-400">
+            Admin Decision Note
+          </label>
           <button
             type="button"
             disabled={!adminNote.trim() || isEnhancing || Boolean(busyAction)}
             onClick={handleEnhanceWithAI}
-            className="group inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-600 px-3 py-1.5 text-xs font-bold text-white shadow-xs transition hover:opacity-90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+            className="group inline-flex items-center gap-1 text-xs font-bold text-cyan-400 hover:text-cyan-300 disabled:opacity-50 transition"
           >
             {isEnhancing ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
             ) : (
-              <Sparkles className="h-3.5 w-3.5 text-cyan-100 transition group-hover:scale-110" />
+              <Sparkles className="h-3.5 w-3.5" />
             )}
-            <span>{isEnhancing ? "Polishing tone..." : "Enhance with AI ✨"}</span>
+            <span>{isEnhancing ? "Polishing..." : "Polish with AI ✨"}</span>
           </button>
         </div>
 
@@ -243,51 +247,50 @@ export default function ArtistApplicationReviewActions({
           rows={4}
           maxLength={500}
           disabled={Boolean(busyAction)}
-          className="min-h-32 w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-950 outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-100 disabled:bg-slate-50"
-          placeholder="Write the reason or next steps for the applicant."
+          className="min-h-32 w-full resize-none rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-xs font-medium text-white placeholder-slate-500 outline-none transition focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/20 disabled:bg-slate-900 disabled:text-slate-500"
+          placeholder="Write reason or next steps for the applicant..."
         />
       </div>
 
       {successMsg && (
-        <p className="mt-3 rounded-2xl bg-cyan-50 p-3 text-xs font-semibold text-cyan-800 border border-cyan-100 flex items-center gap-2">
-          <Sparkles className="h-3.5 w-3.5 text-cyan-600 shrink-0" />
+        <p className="rounded-2xl bg-cyan-500/15 border border-cyan-500/30 p-3.5 text-xs font-bold text-cyan-300">
           {successMsg}
         </p>
       )}
 
       {error && (
-        <p className="mt-3 rounded-2xl bg-rose-50 p-3 text-xs font-semibold text-rose-700">
+        <p className="rounded-2xl bg-rose-500/15 border border-rose-500/30 p-3.5 text-xs font-bold text-rose-300">
           {error}
         </p>
       )}
 
-      <div className="mt-5 grid gap-3">
+      <div className="grid gap-3 pt-2">
         <button
           type="button"
           disabled={Boolean(busyAction)}
           onClick={() => review("approve")}
-          className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 py-3.5 text-xs font-black text-white shadow-lg shadow-emerald-600/25 transition hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {busyAction === "approve" ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
             <Check className="h-4 w-4" />
           )}
-          Approve
+          Approve Application
         </button>
 
         <button
           type="button"
           disabled={Boolean(busyAction)}
           onClick={() => review("reject")}
-          className="inline-flex items-center justify-center gap-2 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-700 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-800 bg-slate-900 px-4 py-3.5 text-xs font-extrabold text-slate-300 transition hover:bg-slate-800 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
         >
           {busyAction === "reject" ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
             <X className="h-4 w-4" />
           )}
-          Reject
+          Reject Application
         </button>
       </div>
     </div>

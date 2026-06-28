@@ -1,6 +1,8 @@
 import { Images, Sparkles } from "lucide-react";
 import { connectDB } from "@/lib/db";
 import Artwork from "@/models/Artwork";
+import Like from "@/models/Like";
+import UserInteraction from "@/models/UserInteraction";
 import User from "@/models/User";
 import ArtworkExplorer from "@/components/admin/ArtworkExplorer";
 
@@ -16,6 +18,8 @@ export default async function AdminArtworksPage() {
     unpublishedCount,
     engagementAgg,
     topCategoriesRaw,
+    totalLikesReal,
+    totalViewsInteractions,
   ] = await Promise.all([
     Artwork.find()
       .populate("artist", "username email artistProfile")
@@ -39,16 +43,49 @@ export default async function AdminArtworksPage() {
       { $sort: { count: -1 } },
       { $limit: 6 },
     ]),
+    Like.countDocuments(),
+    UserInteraction.countDocuments({ type: "view" }),
   ]);
 
-  const artworks = JSON.parse(JSON.stringify(artworksRaw));
+  const artworkIds = artworksRaw.map((a) => a._id);
+
+  const [likesGroup, viewsGroup] = await Promise.all([
+    artworkIds.length > 0
+      ? Like.aggregate([
+          { $match: { artwork: { $in: artworkIds } } },
+          { $group: { _id: "$artwork", count: { $sum: 1 } } },
+        ])
+      : Promise.resolve([]),
+    artworkIds.length > 0
+      ? UserInteraction.aggregate([
+          { $match: { artwork: { $in: artworkIds }, type: "view" } },
+          { $group: { _id: "$artwork", count: { $sum: 1 } } },
+        ])
+      : Promise.resolve([]),
+  ]);
+
+  const likesMap = new Map(likesGroup.map((g) => [g._id.toString(), g.count]));
+  const viewsMap = new Map(viewsGroup.map((g) => [g._id.toString(), g.count]));
+
+  const artworksWithRealStats = artworksRaw.map((a) => {
+    const idStr = a._id.toString();
+    const realLikes = likesMap.get(idStr) ?? 0;
+    const realViews = viewsMap.get(idStr) ?? 0;
+    return {
+      ...a,
+      likesCount: Math.max(a.likesCount || 0, realLikes),
+      views: Math.max(a.views || 0, realViews),
+    };
+  });
+
+  const artworks = JSON.parse(JSON.stringify(artworksWithRealStats));
   const metrics = JSON.parse(
     JSON.stringify({
       totalCount,
       publishedCount,
       unpublishedCount,
-      totalViews: engagementAgg[0]?.totalViews || 0,
-      totalLikes: engagementAgg[0]?.totalLikes || 0,
+      totalViews: Math.max(engagementAgg[0]?.totalViews || 0, totalViewsInteractions),
+      totalLikes: Math.max(engagementAgg[0]?.totalLikes || 0, totalLikesReal),
       topCategories: topCategoriesRaw.map((c) => ({
         category: c._id || "Uncategorized",
         count: c.count,

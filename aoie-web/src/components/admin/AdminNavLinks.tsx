@@ -183,15 +183,15 @@ export default function AdminNavLinks({
                   : "border-slate-800 bg-slate-900/80 text-slate-400 hover:bg-slate-800 hover:text-white"
               }`}
             >
+              <Icon className={`h-3.5 w-3.5 ${isActive ? "text-cyan-400" : "text-slate-400"}`} />
+              <span>{item.label}</span>
               {isActive && (
                 <motion.span
                   layoutId="mobile_active_ball"
-                  className="h-1.5 w-1.5 rounded-full bg-cyan-300 shadow-[0_0_8px_#22d3ee] shrink-0"
+                  className="h-2 w-2 rounded-full bg-cyan-300 shadow-[0_0_8px_#22d3ee] shrink-0 ml-1"
                   transition={{ type: "spring", stiffness: 450, damping: 28 }}
                 />
               )}
-              <Icon className={`h-3.5 w-3.5 ${isActive ? "text-cyan-400" : "text-slate-400"}`} />
-              <span>{item.label}</span>
               {badge && (
                 <span
                   className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-black ${
@@ -217,7 +217,7 @@ export default function AdminNavLinks({
         isCollapsed ? "px-1 items-center" : "w-full"
       }`}
     >
-      {/* SINGLE ANIMATED ACTIVE BACKGROUND PILL (Physically slides up/down through all links) */}
+      {/* SINGLE ANIMATED ACTIVE BACKGROUND PILL */}
       {!isCollapsed ? (
         <motion.div
           initial={false}
@@ -246,7 +246,7 @@ export default function AdminNavLinks({
         />
       )}
 
-      {/* SINGLE ANIMATED TINY GLOWING BALL (Physically crosses all links to destination) */}
+      {/* SINGLE ANIMATED GLOWING DOT PLACED ON THE RIGHT SIDE (REPLACING THE ARROW) */}
       {!isCollapsed ? (
         <motion.span
           initial={false}
@@ -258,7 +258,7 @@ export default function AdminNavLinks({
             stiffness: 380,
             damping: 26,
           }}
-          className="absolute left-3 top-0 h-2 w-2 rounded-full bg-cyan-200 shadow-[0_0_10px_#67e8f9] pointer-events-none z-20"
+          className="absolute right-4 top-0 h-2.5 w-2.5 rounded-full bg-cyan-200 shadow-[0_0_12px_#67e8f9] pointer-events-none z-20"
         />
       ) : (
         <motion.span
@@ -315,7 +315,7 @@ export default function AdminNavLinks({
               </span>
             </span>
 
-            {/* Badge and Chevron */}
+            {/* Badge and Right Side Indicator / Chevron */}
             <div className={`flex items-center gap-2 shrink-0 ${isCollapsed ? "absolute -top-1 -right-1" : ""}`}>
               {badge && (
                 <span
@@ -337,14 +337,15 @@ export default function AdminNavLinks({
                   {isCollapsed ? badge.count : String(badge.count).padStart(2, "0")}
                 </span>
               )}
-              {!isCollapsed && (
+
+              {!isCollapsed && !isActive && (
                 <ChevronRight
-                  className={`h-4 w-4 transition-all duration-300 group-hover:translate-x-0.5 ${
-                    isActive
-                      ? "text-white opacity-100"
-                      : "text-slate-500 opacity-0 group-hover:opacity-100 group-hover:text-cyan-400"
-                  }`}
+                  className="h-4 w-4 text-slate-500 opacity-0 transition-all duration-300 group-hover:translate-x-0.5 group-hover:opacity-100 group-hover:text-cyan-400"
                 />
+              )}
+
+              {!isCollapsed && isActive && (
+                <div className="w-3 h-3" /> /* Placeholder space for the right-aligned animated glowing dot */
               )}
             </div>
           </Link>

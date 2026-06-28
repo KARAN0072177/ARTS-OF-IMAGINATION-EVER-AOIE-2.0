@@ -2,6 +2,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 import Artwork from "@/models/Artwork";
+import Like from "@/models/Like";
+import UserInteraction from "@/models/UserInteraction";
 import User from "@/models/User";
 
 void User;
@@ -54,34 +56,75 @@ export async function GET(req: Request) {
       ];
     }
 
-    const [artworksRaw, totalCount, publishedCount, unpublishedCount, engagementAgg, topCategoriesRaw] =
-      await Promise.all([
-        Artwork.find(query)
-          .populate("artist", "username email artistProfile")
-          .sort({ createdAt: -1 })
-          .limit(100)
-          .lean(),
-        Artwork.countDocuments(query),
-        Artwork.countDocuments({ isPublished: true }),
-        Artwork.countDocuments({ isPublished: false }),
-        Artwork.aggregate([
-          {
-            $group: {
-              _id: null,
-              totalViews: { $sum: "$views" },
-              totalLikes: { $sum: "$likesCount" },
-            },
+    const [
+      artworksRaw,
+      totalCount,
+      publishedCount,
+      unpublishedCount,
+      engagementAgg,
+      topCategoriesRaw,
+      totalLikesReal,
+      totalViewsInteractions,
+    ] = await Promise.all([
+      Artwork.find(query)
+        .populate("artist", "username email artistProfile")
+        .sort({ createdAt: -1 })
+        .limit(100)
+        .lean(),
+      Artwork.countDocuments(query),
+      Artwork.countDocuments({ isPublished: true }),
+      Artwork.countDocuments({ isPublished: false }),
+      Artwork.aggregate([
+        {
+          $group: {
+            _id: null,
+            totalViews: { $sum: "$views" },
+            totalLikes: { $sum: "$likesCount" },
           },
-        ]),
-        Artwork.aggregate([
-          { $group: { _id: "$category", count: { $sum: 1 } } },
-          { $sort: { count: -1 } },
-          { $limit: 6 },
-        ]),
-      ]);
+        },
+      ]),
+      Artwork.aggregate([
+        { $group: { _id: "$category", count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        { $limit: 6 },
+      ]),
+      Like.countDocuments(),
+      UserInteraction.countDocuments({ type: "view" }),
+    ]);
 
-    const totalViews = engagementAgg[0]?.totalViews || 0;
-    const totalLikes = engagementAgg[0]?.totalLikes || 0;
+    const artworkIds = artworksRaw.map((a) => a._id);
+
+    const [likesGroup, viewsGroup] = await Promise.all([
+      artworkIds.length > 0
+        ? Like.aggregate([
+            { $match: { artwork: { $in: artworkIds } } },
+            { $group: { _id: "$artwork", count: { $sum: 1 } } },
+          ])
+        : Promise.resolve([]),
+      artworkIds.length > 0
+        ? UserInteraction.aggregate([
+            { $match: { artwork: { $in: artworkIds }, type: "view" } },
+            { $group: { _id: "$artwork", count: { $sum: 1 } } },
+          ])
+        : Promise.resolve([]),
+    ]);
+
+    const likesMap = new Map(likesGroup.map((g) => [g._id.toString(), g.count]));
+    const viewsMap = new Map(viewsGroup.map((g) => [g._id.toString(), g.count]));
+
+    const artworksWithRealStats = artworksRaw.map((a) => {
+      const idStr = a._id.toString();
+      const realLikes = likesMap.get(idStr) ?? 0;
+      const realViews = viewsMap.get(idStr) ?? 0;
+      return {
+        ...a,
+        likesCount: Math.max(a.likesCount || 0, realLikes),
+        views: Math.max(a.views || 0, realViews),
+      };
+    });
+
+    const totalViews = Math.max(engagementAgg[0]?.totalViews || 0, totalViewsInteractions);
+    const totalLikes = Math.max(engagementAgg[0]?.totalLikes || 0, totalLikesReal);
 
     const topCategories = topCategoriesRaw.map((c) => ({
       category: c._id || "Uncategorized",
@@ -90,7 +133,7 @@ export async function GET(req: Request) {
 
     return Response.json({
       success: true,
-      artworks: artworksRaw,
+      artworks: artworksWithRealStats,
       metrics: {
         totalCount,
         publishedCount,
