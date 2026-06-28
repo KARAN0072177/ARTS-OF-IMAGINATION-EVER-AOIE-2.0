@@ -8,6 +8,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Shield,
+  Sparkles,
 } from "lucide-react";
 import AdminNavLinks from "./AdminNavLinks";
 
@@ -44,65 +45,55 @@ export default function AdminClientLayout({
   };
 
   return (
-    <div className="min-h-screen bg-[#f6f8fb] text-slate-950">
-      {/* Desktop Sidebar */}
+    <div className="min-h-screen bg-slate-950 text-slate-100 selection:bg-cyan-500 selection:text-slate-950">
+      {/* Ambient background glow elements */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <div className="absolute top-0 left-1/4 h-96 w-96 rounded-full bg-cyan-500/10 blur-[120px]" />
+        <div className="absolute bottom-1/4 right-1/4 h-96 w-96 rounded-full bg-purple-500/10 blur-[120px]" />
+      </div>
+
+      {/* Desktop Sidebar (Dark Glassmorphism with Smooth Transitions) */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 hidden border-r border-slate-200/80 bg-white transition-all duration-300 ease-in-out lg:block ${
+        className={`fixed inset-y-0 left-0 z-40 hidden border-r border-slate-800/80 bg-slate-950/80 backdrop-blur-2xl transition-all duration-300 ease-in-out lg:block ${
           isCollapsed ? "w-20 px-3 py-6" : "w-72 px-5 py-6"
-        } shadow-[10px_0_35px_rgba(15,23,42,0.04)]`}
+        } shadow-2xl shadow-cyan-950/20`}
       >
         {/* Top Header & Toggle */}
-        {!isCollapsed ? (
-          <div className="flex items-center justify-between gap-2">
-            <Link
-              href="/admin"
-              className="flex flex-1 items-center gap-3 rounded-3xl border border-slate-200 bg-slate-50 p-2.5 transition hover:bg-slate-100"
-            >
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-sm">
-                <Shield className="h-5 w-5" />
-              </span>
-              <span className="min-w-0">
-                <span className="block truncate text-base font-extrabold tracking-tight">
-                  AOIE Admin
-                </span>
-                <span className="block truncate text-[11px] font-medium text-slate-500">
-                  Operations workspace
-                </span>
-              </span>
-            </Link>
-
-            <button
-              type="button"
-              onClick={toggleSidebar}
-              title="Collapse Sidebar"
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-100 hover:text-slate-950"
-            >
-              <PanelLeftClose className="h-5 w-5" />
-            </button>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center gap-3">
-            <Link
-              href="/admin"
-              title="AOIE Admin Overview"
-              className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-sm transition hover:bg-cyan-700"
-            >
+        <div className={`flex items-center gap-2 transition-all duration-300 ${isCollapsed ? "flex-col justify-center" : "justify-between"}`}>
+          <Link
+            href="/admin"
+            title="AOIE Admin Overview"
+            className={`flex items-center gap-3 rounded-3xl border border-slate-800/80 bg-slate-900/60 backdrop-blur-md transition-all duration-300 hover:bg-slate-900 hover:border-slate-700 shadow-lg ${
+              isCollapsed ? "h-11 w-11 justify-center p-0" : "flex-1 p-2.5"
+            }`}
+          >
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 text-white shadow-md shadow-cyan-500/30">
               <Shield className="h-5 w-5" />
-            </Link>
+            </span>
+            <div className={`overflow-hidden transition-all duration-300 ease-in-out whitespace-nowrap ${
+              isCollapsed ? "max-w-0 opacity-0 pointer-events-none hidden" : "max-w-[200px] opacity-100"
+            }`}>
+              <span className="block text-base font-black tracking-tight text-white flex items-center gap-1.5">
+                AOIE Admin <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
+              </span>
+              <span className="block text-[11px] font-bold text-slate-400">
+                Operations workspace
+              </span>
+            </div>
+          </Link>
 
-            <button
-              type="button"
-              onClick={toggleSidebar}
-              title="Expand Sidebar"
-              className="flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-cyan-50 text-cyan-700 transition hover:bg-cyan-100 hover:text-cyan-900 shadow-2xs"
-            >
-              <PanelLeftOpen className="h-5 w-5" />
-            </button>
-          </div>
-        )}
+          <button
+            type="button"
+            onClick={toggleSidebar}
+            title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-slate-800 bg-slate-900/80 text-slate-400 transition-all duration-300 hover:bg-slate-800 hover:text-white"
+          >
+            {isCollapsed ? <PanelLeftOpen className="h-5 w-5 text-cyan-400" /> : <PanelLeftClose className="h-5 w-5" />}
+          </button>
+        </div>
 
         {/* Navigation Links */}
-        <div className="mt-4">
+        <div className="mt-6">
           <AdminNavLinks
             initialPendingCount={pendingCount}
             initialPendingReportsCount={pendingReportsCount}
@@ -112,59 +103,57 @@ export default function AdminClientLayout({
 
         {/* Bottom User Card */}
         <div
-          className={`absolute bottom-6 border border-cyan-200 bg-cyan-50 text-cyan-950 transition-all duration-300 ${
+          className={`absolute bottom-6 border border-slate-800/80 bg-slate-900/80 backdrop-blur-md text-slate-100 transition-all duration-300 ease-in-out shadow-xl overflow-hidden ${
             isCollapsed
-              ? "left-3 right-3 rounded-2xl p-1.5 flex justify-center"
+              ? "left-3 right-3 rounded-2xl p-2 flex flex-col items-center gap-2"
               : "left-5 right-5 rounded-3xl p-4"
           }`}
         >
-          {!isCollapsed ? (
-            <>
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white text-cyan-700 shadow-sm">
-                  <Brush className="h-4 w-4" />
-                </div>
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-bold capitalize">{userRole}</p>
-                  <p className="truncate text-xs text-cyan-800/70">Admin active</p>
-                </div>
-              </div>
-              <Link
-                href="/feed"
-                className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-white px-3 py-2 text-sm font-bold text-cyan-800 shadow-sm transition hover:bg-cyan-950 hover:text-white"
-              >
-                <LogOut className="h-4 w-4" />
-                Back to site
-              </Link>
-            </>
-          ) : (
-            <Link
-              href="/feed"
-              title="Back to site"
-              className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-cyan-800 shadow-xs transition hover:bg-cyan-950 hover:text-white"
-            >
-              <LogOut className="h-5 w-5" />
-            </Link>
-          )}
+          <div className="flex items-center gap-3 w-full">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-slate-800 text-cyan-400 border border-slate-700 shadow-inner">
+              <Brush className="h-4 w-4" />
+            </div>
+            <div className={`overflow-hidden transition-all duration-300 ease-in-out whitespace-nowrap min-w-0 ${
+              isCollapsed ? "max-w-0 opacity-0 pointer-events-none hidden" : "max-w-[180px] opacity-100"
+            }`}>
+              <p className="truncate text-sm font-extrabold capitalize text-white">{userRole}</p>
+              <p className="truncate text-xs font-bold text-cyan-400">Admin active</p>
+            </div>
+          </div>
+
+          <Link
+            href="/feed"
+            title="Back to site"
+            className={`inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-800/80 border border-slate-700 text-slate-200 transition-all duration-300 hover:bg-cyan-600 hover:text-white hover:border-cyan-500 shadow-md ${
+              isCollapsed ? "h-10 w-10 p-0 mt-0" : "w-full px-3 py-2 mt-4 text-sm font-extrabold"
+            }`}
+          >
+            <LogOut className="h-4 w-4 shrink-0" />
+            <span className={`overflow-hidden transition-all duration-300 ease-in-out whitespace-nowrap ${
+              isCollapsed ? "max-w-0 opacity-0 pointer-events-none hidden" : "max-w-[150px] opacity-100"
+            }`}>
+              Back to site
+            </span>
+          </Link>
         </div>
       </aside>
 
       {/* Main Content Area with Dynamic Padding */}
       <div
-        className={`transition-all duration-300 ease-in-out ${
+        className={`relative z-10 transition-all duration-300 ease-in-out ${
           isMounted && isCollapsed ? "lg:pl-20" : "lg:pl-72"
         }`}
       >
-        {/* Mobile Header Bar */}
-        <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/90 px-5 py-4 backdrop-blur lg:hidden">
+        {/* Mobile Header Bar (Dark Glass) */}
+        <header className="sticky top-0 z-40 border-b border-slate-800/80 bg-slate-950/80 px-5 py-4 backdrop-blur-2xl lg:hidden">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-950 text-white">
+              <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 text-white shadow-md">
                 <Shield className="h-5 w-5" />
               </span>
               <div>
-                <p className="font-bold">AOIE Admin</p>
-                <p className="text-xs text-slate-500 capitalize">{userRole}</p>
+                <p className="font-extrabold text-white">AOIE Admin</p>
+                <p className="text-xs font-bold text-cyan-400 capitalize">{userRole}</p>
               </div>
             </div>
           </div>

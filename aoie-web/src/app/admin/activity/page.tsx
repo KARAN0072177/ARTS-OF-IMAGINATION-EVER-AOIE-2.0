@@ -34,20 +34,20 @@ export default async function AdminActivityPage() {
 
   return (
     <section className="space-y-6">
-      <div className="overflow-hidden rounded-[2.5rem] border border-slate-200/80 bg-white shadow-xl shadow-slate-900/5">
-        {/* Cyber Hero Banner Header */}
-        <div className="relative border-b border-slate-100 bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 p-8 sm:p-10 text-white overflow-hidden">
-          <div className="absolute -right-12 -top-12 h-64 w-64 rounded-full bg-cyan-500/10 blur-3xl" />
-          <div className="absolute right-1/3 -bottom-12 h-64 w-64 rounded-full bg-purple-500/10 blur-3xl" />
+      <div className="overflow-hidden rounded-[2.5rem] border border-slate-800/80 bg-slate-950/90 backdrop-blur-2xl shadow-2xl shadow-cyan-950/20 text-slate-100">
+        {/* Cyber Glass Hero Header */}
+        <div className="relative border-b border-slate-800/80 bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 p-8 sm:p-10 text-white overflow-hidden">
+          <div className="absolute -right-12 -top-12 h-72 w-72 rounded-full bg-cyan-500/15 blur-3xl" />
+          <div className="absolute right-1/3 -bottom-12 h-72 w-72 rounded-full bg-purple-500/15 blur-3xl" />
 
           <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-6">
             <div>
               <div className="flex items-center gap-3">
-                <span className="inline-flex items-center gap-2 rounded-full bg-cyan-500/15 px-3.5 py-1 text-xs font-black uppercase tracking-[0.25em] text-cyan-400 border border-cyan-500/20 backdrop-blur-md">
+                <span className="inline-flex items-center gap-2 rounded-full bg-cyan-500/15 px-3.5 py-1 text-xs font-black uppercase tracking-[0.25em] text-cyan-400 border border-cyan-500/30 backdrop-blur-md shadow-inner">
                   <Terminal className="h-3.5 w-3.5 text-cyan-400" />
                   SOC SOC-2026 Telemetry
                 </span>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-bold text-emerald-400 border border-emerald-500/20 backdrop-blur-md">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-bold text-emerald-400 border border-emerald-500/30 backdrop-blur-md">
                   <Radio className="h-3 w-3 animate-pulse text-emerald-400" /> Live Radar Active
                 </span>
               </div>
@@ -60,7 +60,7 @@ export default async function AdminActivityPage() {
               </p>
             </div>
 
-            <div className="hidden lg:flex items-center gap-3 self-center rounded-2xl bg-white/5 p-4 border border-white/10 backdrop-blur-md">
+            <div className="hidden lg:flex items-center gap-3 self-center rounded-2xl bg-slate-900/80 p-4 border border-slate-800/80 backdrop-blur-md shadow-xl">
               <ShieldAlert className="h-10 w-10 text-rose-400 animate-pulse" />
               <div>
                 <p className="text-xs font-black uppercase tracking-wider text-slate-400">Zero-Trust SOC</p>
@@ -70,7 +70,7 @@ export default async function AdminActivityPage() {
           </div>
         </div>
 
-        <div className="p-6 sm:p-10 bg-slate-50/40">
+        <div className="p-6 sm:p-10 bg-slate-950/40">
           <ActivityLogExplorer initialLogs={logs} initialMetrics={metrics} />
         </div>
       </div>

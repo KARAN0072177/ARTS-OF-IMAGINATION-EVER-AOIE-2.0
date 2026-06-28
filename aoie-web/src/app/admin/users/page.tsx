@@ -1,4 +1,4 @@
-import { Users } from "lucide-react";
+import { Sparkles, Users } from "lucide-react";
 
 import AdminUsersExplorer, {
   AdminUserListItem,
@@ -107,61 +107,51 @@ export default async function AdminUsersPage() {
     }));
 
   return (
-    <section className="space-y-6">
-      <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-100 bg-gradient-to-r from-white via-cyan-50 to-white p-6 sm:p-8">
-          <p className="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.28em] text-cyan-700">
-            <Users className="h-4 w-4" />
-            Account management
-          </p>
-          <div className="mt-4 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+    <section className="space-y-6 text-slate-100">
+      <div className="overflow-hidden rounded-[2.5rem] border border-slate-800/80 bg-slate-950/90 backdrop-blur-2xl shadow-2xl shadow-cyan-950/20">
+        {/* Dark Glass Hero Banner */}
+        <div className="relative border-b border-slate-800/80 bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 p-8 sm:p-10 text-white overflow-hidden">
+          <div className="absolute -right-12 -top-12 h-72 w-72 rounded-full bg-cyan-500/15 blur-3xl" />
+          <div className="absolute right-1/3 -bottom-12 h-72 w-72 rounded-full bg-purple-500/15 blur-3xl" />
+
+          <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <h1 className="text-4xl font-extrabold tracking-tight">
-                Users
+              <p className="inline-flex items-center gap-2 rounded-full bg-cyan-500/15 px-3.5 py-1 text-xs font-black uppercase tracking-[0.25em] text-cyan-400 border border-cyan-500/30 backdrop-blur-md shadow-inner">
+                <Users className="h-3.5 w-3.5 text-cyan-400" />
+                User Operations & Directory
+              </p>
+              <h1 className="mt-4 text-3xl sm:text-5xl font-black tracking-tight text-white flex items-center gap-2">
+                User Management <Sparkles className="h-6 w-6 text-cyan-400" />
               </h1>
-              <p className="mt-3 max-w-2xl text-slate-600">
-                Search accounts, inspect login methods, review artist status,
-                and manage account roles from one admin queue.
+              <p className="mt-3 max-w-2xl text-sm sm:text-base font-medium text-slate-300 leading-relaxed">
+                Search accounts, inspect login methods, review artist status, and manage account roles from one unified admin queue.
               </p>
             </div>
-            <div className="grid grid-cols-2 gap-2 sm:w-[520px] sm:grid-cols-4">
-              <div className="rounded-2xl border border-slate-200 bg-white p-3">
-                <p className="text-xs font-bold text-slate-500">
-                  Users
-                </p>
-                <p className="mt-1 text-2xl font-extrabold">
-                  {totalUsers}
-                </p>
+
+            <div className="grid grid-cols-2 gap-3 sm:w-[520px] sm:grid-cols-4">
+              <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-4 backdrop-blur-md shadow-xl text-center">
+                <p className="text-xs font-black uppercase text-slate-400 tracking-wider">Total Users</p>
+                <p className="mt-1 text-2xl font-black text-white">{totalUsers}</p>
               </div>
-              <div className="rounded-2xl border border-cyan-200 bg-white p-3">
-                <p className="text-xs font-bold text-cyan-700">
-                  Artists
-                </p>
-                <p className="mt-1 text-2xl font-extrabold">
-                  {artistCount}
-                </p>
+              <div className="rounded-3xl border border-cyan-500/30 bg-slate-900/80 p-4 backdrop-blur-md shadow-xl text-center">
+                <p className="text-xs font-black uppercase text-cyan-400 tracking-wider">Artists</p>
+                <p className="mt-1 text-2xl font-black text-white">{artistCount}</p>
               </div>
-              <div className="rounded-2xl border border-violet-200 bg-white p-3">
-                <p className="text-xs font-bold text-violet-700">
-                  Admins
-                </p>
-                <p className="mt-1 text-2xl font-extrabold">
-                  {adminCount}
-                </p>
+              <div className="rounded-3xl border border-purple-500/30 bg-slate-900/80 p-4 backdrop-blur-md shadow-xl text-center">
+                <p className="text-xs font-black uppercase text-purple-400 tracking-wider">Admins</p>
+                <p className="mt-1 text-2xl font-black text-white">{adminCount}</p>
               </div>
-              <div className="rounded-2xl border border-amber-200 bg-white p-3">
-                <p className="text-xs font-bold text-amber-700">
-                  Unverified
-                </p>
-                <p className="mt-1 text-2xl font-extrabold">
-                  {unverifiedCount}
-                </p>
+              <div className="rounded-3xl border border-amber-500/30 bg-slate-900/80 p-4 backdrop-blur-md shadow-xl text-center">
+                <p className="text-xs font-black uppercase text-amber-400 tracking-wider">Unverified</p>
+                <p className="mt-1 text-2xl font-black text-white">{unverifiedCount}</p>
               </div>
             </div>
           </div>
         </div>
 
-        <AdminUsersExplorer users={clientUsers} />
+        <div className="bg-slate-950/40">
+          <AdminUsersExplorer users={clientUsers} />
+        </div>
       </div>
     </section>
   );

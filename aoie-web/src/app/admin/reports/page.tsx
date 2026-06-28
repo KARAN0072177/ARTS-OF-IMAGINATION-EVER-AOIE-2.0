@@ -5,6 +5,7 @@ import {
   Clock,
   Flag,
   ShieldAlert,
+  Sparkles,
   Trash2,
   XCircle,
 } from "lucide-react";
@@ -39,7 +40,7 @@ function statusStyle(status: ReportItem["status"]) {
     return {
       label: "Valid",
       className:
-        "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100",
+        "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-black",
       icon: CheckCircle2,
     };
   }
@@ -47,14 +48,14 @@ function statusStyle(status: ReportItem["status"]) {
   if (status === "invalid") {
     return {
       label: "Invalid",
-      className: "bg-slate-100 text-slate-600 ring-1 ring-slate-200",
+      className: "bg-slate-800 text-slate-400 border border-slate-700 font-bold",
       icon: XCircle,
     };
   }
 
   return {
     label: "Pending",
-    className: "bg-rose-50 text-rose-700 ring-1 ring-rose-100",
+    className: "bg-rose-500/15 text-rose-300 border border-rose-500/30 font-black animate-pulse",
     icon: Clock,
   };
 }
@@ -70,17 +71,9 @@ export default async function AdminReportsPage() {
     })
     .lean()) as unknown as ReportItem[];
 
-  const statusWeight: Record<string, number> = {
-    pending: 1,
-    valid: 2,
-    invalid: 3,
-  };
-
   const reports = [...rawReports].sort((a, b) => {
-    // If one is pending and the other is not, show pending first for admin attention
     if (a.status === "pending" && b.status !== "pending") return -1;
     if (b.status === "pending" && a.status !== "pending") return 1;
-    // Otherwise, strictly newest date first
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
 
@@ -91,71 +84,60 @@ export default async function AdminReportsPage() {
     (report) => report.status === "valid"
   ).length;
   const removedCount = reports.filter(
-    (report) =>
-      report.actionTaken === "artwork_removed"
+    (report) => report.actionTaken === "artwork_removed"
   ).length;
 
   return (
-    <section className="space-y-6">
-      <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-100 bg-gradient-to-r from-white via-rose-50 to-white p-6 sm:p-8">
-          <p className="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.28em] text-rose-600">
-            <Flag className="h-4 w-4" />
-            Moderation
-          </p>
-          <div className="mt-4 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+    <section className="space-y-6 text-slate-100">
+      <div className="overflow-hidden rounded-[2.5rem] border border-slate-800/80 bg-slate-950/90 backdrop-blur-2xl shadow-2xl shadow-cyan-950/20">
+        {/* Dark Glass Hero Banner */}
+        <div className="relative border-b border-slate-800/80 bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 p-8 sm:p-10 text-white overflow-hidden">
+          <div className="absolute -right-12 -top-12 h-72 w-72 rounded-full bg-rose-500/15 blur-3xl" />
+          <div className="absolute right-1/3 -bottom-12 h-72 w-72 rounded-full bg-cyan-500/15 blur-3xl" />
+
+          <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <h1 className="text-4xl font-extrabold tracking-tight">
-                Artwork reports
+              <p className="inline-flex items-center gap-2 rounded-full bg-rose-500/15 px-3.5 py-1 text-xs font-black uppercase tracking-[0.25em] text-rose-400 border border-rose-500/30 backdrop-blur-md shadow-inner">
+                <Flag className="h-3.5 w-3.5 text-rose-400" />
+                Moderation Queue
+              </p>
+              <h1 className="mt-4 text-3xl sm:text-5xl font-black tracking-tight text-white flex items-center gap-2">
+                Artwork Reports <Sparkles className="h-6 w-6 text-rose-400" />
               </h1>
-              <p className="mt-3 max-w-2xl text-slate-600">
-                Review reported artwork, decide whether the report is valid,
-                and remove harmful content with user-facing email updates.
+              <p className="mt-3 max-w-2xl text-sm sm:text-base font-medium text-slate-300 leading-relaxed">
+                Review reported artwork, decide whether the report is valid, and remove harmful content with automated user-facing email updates.
               </p>
             </div>
-            <div className="grid grid-cols-3 gap-2 sm:w-[420px]">
-              <div className="rounded-2xl border border-rose-200 bg-white p-3">
-                <p className="text-xs font-bold text-rose-700">
-                  Pending
-                </p>
-                <p className="mt-1 text-2xl font-extrabold">
-                  {pendingCount}
-                </p>
+
+            <div className="grid grid-cols-3 gap-3 sm:w-[440px]">
+              <div className="rounded-3xl border border-rose-500/30 bg-slate-900/80 p-4 backdrop-blur-md shadow-xl text-center">
+                <p className="text-xs font-black uppercase text-rose-400 tracking-wider">Pending</p>
+                <p className="mt-1 text-3xl font-black text-white">{pendingCount}</p>
               </div>
-              <div className="rounded-2xl border border-emerald-200 bg-white p-3">
-                <p className="text-xs font-bold text-emerald-700">
-                  Valid
-                </p>
-                <p className="mt-1 text-2xl font-extrabold">
-                  {validCount}
-                </p>
+              <div className="rounded-3xl border border-emerald-500/30 bg-slate-900/80 p-4 backdrop-blur-md shadow-xl text-center">
+                <p className="text-xs font-black uppercase text-emerald-400 tracking-wider">Valid</p>
+                <p className="mt-1 text-3xl font-black text-white">{validCount}</p>
               </div>
-              <div className="rounded-2xl border border-slate-200 bg-white p-3">
-                <p className="text-xs font-bold text-slate-600">
-                  Removed
-                </p>
-                <p className="mt-1 text-2xl font-extrabold">
-                  {removedCount}
-                </p>
+              <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-4 backdrop-blur-md shadow-xl text-center">
+                <p className="text-xs font-black uppercase text-slate-400 tracking-wider">Removed</p>
+                <p className="mt-1 text-3xl font-black text-white">{removedCount}</p>
               </div>
             </div>
           </div>
         </div>
 
         {reports.length === 0 ? (
-          <div className="p-12 text-center">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-3xl bg-rose-50 text-rose-700">
-              <ShieldAlert className="h-6 w-6" />
+          <div className="p-16 text-center bg-slate-950/40">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-3xl bg-slate-900 border border-slate-800 text-rose-400">
+              <ShieldAlert className="h-7 w-7" />
             </div>
-            <h2 className="mt-4 text-xl font-extrabold">
-              No reports yet
-            </h2>
-            <p className="mt-2 text-sm text-slate-500">
+            <h2 className="mt-4 text-xl font-black text-white">No reports yet</h2>
+            <p className="mt-2 text-sm font-semibold text-slate-400">
               User-submitted artwork reports will appear in this queue.
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-slate-800/60 bg-slate-950/40">
             {reports.map((report) => {
               const status = statusStyle(report.status);
               const StatusIcon = status.icon;
@@ -164,52 +146,42 @@ export default async function AdminReportsPage() {
                 <Link
                   key={report._id.toString()}
                   href={`/admin/reports/${report._id.toString()}`}
-                  className="group grid gap-4 p-5 transition hover:bg-slate-50 lg:grid-cols-[1fr_220px_160px_32px] lg:items-center"
+                  className="group grid gap-4 p-6 transition duration-200 hover:bg-slate-900/80 lg:grid-cols-[1fr_220px_160px_32px] lg:items-center"
                 >
                   <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="truncate text-lg font-extrabold text-slate-950">
-                        {report.artwork?.title ||
-                          "Removed artwork"}
+                    <div className="flex flex-wrap items-center gap-3">
+                      <h3 className="truncate text-lg font-black text-white group-hover:text-rose-300 transition">
+                        {report.artwork?.title || "Removed artwork"}
                       </h3>
                       <span
-                        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-extrabold ${status.className}`}
+                        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs ${status.className}`}
                       >
                         <StatusIcon className="h-3.5 w-3.5" />
                         {status.label}
                       </span>
-                      {report.actionTaken ===
-                        "artwork_removed" && (
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-3 py-1 text-xs font-extrabold text-rose-700 ring-1 ring-rose-100">
+                      {report.actionTaken === "artwork_removed" && (
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 px-3 py-1 text-xs font-black">
                           <Trash2 className="h-3.5 w-3.5" />
                           Removed
                         </span>
                       )}
                     </div>
-                    <p className="mt-1 truncate text-sm text-slate-500">
+                    <p className="mt-1.5 truncate text-xs font-medium text-slate-300">
                       {report.reason}
                     </p>
                   </div>
 
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-slate-700">
-                      Reported by
-                    </p>
-                    <p className="truncate text-sm text-slate-500">
-                      {report.reporter?.username ||
-                        report.reporter?.email ||
-                        "AOIE user"}
+                    <p className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Reported By</p>
+                    <p className="truncate text-xs font-mono font-bold text-cyan-300 mt-0.5">
+                      {report.reporter?.username || report.reporter?.email || "AOIE User"}
                     </p>
                   </div>
 
-                  <div className="text-sm text-slate-500">
-                    <p className="font-semibold text-slate-700">
-                      Submitted
-                    </p>
-                    <p>
-                      {new Date(
-                        report.createdAt
-                      ).toLocaleDateString("en-US", {
+                  <div className="text-xs text-slate-400">
+                    <p className="font-extrabold text-slate-300">Submitted</p>
+                    <p className="font-mono mt-0.5">
+                      {new Date(report.createdAt).toLocaleDateString("en-US", {
                         month: "short",
                         day: "2-digit",
                         year: "numeric",
@@ -217,7 +189,7 @@ export default async function AdminReportsPage() {
                     </p>
                   </div>
 
-                  <ArrowRight className="h-5 w-5 text-slate-300 transition group-hover:translate-x-1 group-hover:text-rose-600" />
+                  <ArrowRight className="h-5 w-5 text-slate-600 transition group-hover:translate-x-1 group-hover:text-rose-400" />
                 </Link>
               );
             })}

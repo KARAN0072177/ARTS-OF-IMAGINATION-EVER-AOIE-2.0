@@ -1,4 +1,4 @@
-import { Images } from "lucide-react";
+import { Images, Sparkles } from "lucide-react";
 import { connectDB } from "@/lib/db";
 import Artwork from "@/models/Artwork";
 import User from "@/models/User";
@@ -58,21 +58,32 @@ export default async function AdminArtworksPage() {
 
   return (
     <section className="space-y-6">
-      <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-xs">
-        <div className="border-b border-slate-100 bg-gradient-to-r from-white via-cyan-50 to-white p-6 sm:p-8">
-          <p className="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.28em] text-cyan-700">
-            <Images className="h-4 w-4" />
-            Content Telemetry
-          </p>
-          <h1 className="mt-3 text-4xl font-extrabold tracking-tight text-slate-950">
-            Artworks Operations
-          </h1>
-          <p className="mt-2 max-w-2xl text-slate-600">
-            Monitor platform-wide artwork uploads, track engagement velocity, toggle visibility in public feeds, and inspect creator metadata.
-          </p>
+      <div className="overflow-hidden rounded-[2.5rem] border border-slate-800/80 bg-slate-950/90 backdrop-blur-2xl shadow-2xl shadow-cyan-950/20 text-slate-100">
+        {/* Cyber Hero Banner Header */}
+        <div className="relative border-b border-slate-800/80 bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 p-8 sm:p-10 text-white overflow-hidden">
+          <div className="absolute -right-12 -top-12 h-72 w-72 rounded-full bg-cyan-500/15 blur-3xl" />
+          <div className="absolute right-1/3 -bottom-12 h-72 w-72 rounded-full bg-purple-500/15 blur-3xl" />
+
+          <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+            <div>
+              <div className="flex items-center gap-3">
+                <span className="inline-flex items-center gap-2 rounded-full bg-cyan-500/15 px-3.5 py-1 text-xs font-black uppercase tracking-[0.25em] text-cyan-400 border border-cyan-500/30 backdrop-blur-md shadow-inner">
+                  <Images className="h-3.5 w-3.5 text-cyan-400" />
+                  Content Operations
+                </span>
+              </div>
+
+              <h1 className="mt-4 text-3xl sm:text-4xl font-black tracking-tight text-white flex items-center gap-2">
+                Artworks Management <Sparkles className="h-6 w-6 text-cyan-400" />
+              </h1>
+              <p className="mt-2.5 max-w-2xl text-sm sm:text-base font-medium text-slate-300 leading-relaxed">
+                Monitor platform-wide artwork uploads, track engagement velocity, toggle visibility in public feeds, and inspect creator metadata.
+              </p>
+            </div>
+          </div>
         </div>
 
-        <div className="p-6 sm:p-8">
+        <div className="p-6 sm:p-10 bg-slate-950/40">
           <ArtworkExplorer initialArtworks={artworks} initialMetrics={metrics} />
         </div>
       </div>

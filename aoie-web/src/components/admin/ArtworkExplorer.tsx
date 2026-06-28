@@ -147,67 +147,67 @@ export default function ArtworkExplorer({
   }
 
   return (
-    <div className="space-y-6">
-      {/* Metrics Telemetry Overview */}
+    <div className="space-y-6 text-slate-100">
+      {/* Metrics Telemetry Overview (Dark Glass Tiles) */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs">
-          <div className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-cyan-50 text-cyan-600">
+        <div className="group rounded-3xl border border-slate-800/80 bg-slate-900/60 p-5 backdrop-blur-2xl shadow-xl transition hover:border-cyan-500/50">
+          <div className="flex items-center gap-3.5">
+            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-cyan-950/80 text-cyan-400 border border-cyan-500/30 shadow-inner">
               <Images className="h-5 w-5" />
             </span>
             <div>
-              <p className="text-xs font-extrabold uppercase tracking-wider text-slate-500">
+              <p className="text-xs font-black uppercase tracking-wider text-slate-400">
                 Total Artworks
               </p>
-              <p className="mt-1 text-2xl font-extrabold text-slate-950">
+              <p className="mt-1 text-2xl font-black text-white">
                 {metrics.totalCount}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="rounded-3xl border border-emerald-200 bg-white p-5 shadow-xs">
-          <div className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+        <div className="group rounded-3xl border border-slate-800/80 bg-slate-900/60 p-5 backdrop-blur-2xl shadow-xl transition hover:border-emerald-500/50">
+          <div className="flex items-center gap-3.5">
+            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-950/80 text-emerald-400 border border-emerald-500/30 shadow-inner">
               <Eye className="h-5 w-5" />
             </span>
             <div>
-              <p className="text-xs font-extrabold uppercase tracking-wider text-emerald-700">
+              <p className="text-xs font-black uppercase tracking-wider text-emerald-400">
                 Published Feeds
               </p>
-              <p className="mt-1 text-2xl font-extrabold text-slate-950">
+              <p className="mt-1 text-2xl font-black text-white">
                 {metrics.publishedCount}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="rounded-3xl border border-rose-200 bg-white p-5 shadow-xs">
-          <div className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-rose-50 text-rose-600">
+        <div className="group rounded-3xl border border-slate-800/80 bg-slate-900/60 p-5 backdrop-blur-2xl shadow-xl transition hover:border-rose-500/50">
+          <div className="flex items-center gap-3.5">
+            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-rose-950/80 text-rose-400 border border-rose-500/30 shadow-inner">
               <EyeOff className="h-5 w-5" />
             </span>
             <div>
-              <p className="text-xs font-extrabold uppercase tracking-wider text-rose-700">
+              <p className="text-xs font-black uppercase tracking-wider text-rose-400">
                 Delisted / Hidden
               </p>
-              <p className="mt-1 text-2xl font-extrabold text-slate-950">
+              <p className="mt-1 text-2xl font-black text-white">
                 {metrics.unpublishedCount}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="rounded-3xl border border-purple-200 bg-white p-5 shadow-xs">
-          <div className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-purple-50 text-purple-600">
+        <div className="group rounded-3xl border border-slate-800/80 bg-slate-900/60 p-5 backdrop-blur-2xl shadow-xl transition hover:border-purple-500/50">
+          <div className="flex items-center gap-3.5">
+            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-purple-950/80 text-purple-400 border border-purple-500/30 shadow-inner">
               <Heart className="h-5 w-5" />
             </span>
             <div>
-              <p className="text-xs font-extrabold uppercase tracking-wider text-purple-700">
-                Total Platform Likes
+              <p className="text-xs font-black uppercase tracking-wider text-purple-400">
+                Platform Likes
               </p>
-              <p className="mt-1 text-2xl font-extrabold text-slate-950">
+              <p className="mt-1 text-2xl font-black text-white">
                 {metrics.totalLikes}
               </p>
             </div>
@@ -216,14 +216,14 @@ export default function ArtworkExplorer({
       </div>
 
       {feedback && (
-        <div className="flex items-center gap-2 rounded-2xl bg-cyan-50 p-4 text-sm font-bold text-cyan-900 border border-cyan-200">
-          <Info className="h-4 w-4 text-cyan-600" />
+        <div className="flex items-center gap-2 rounded-2xl bg-cyan-950/80 p-4 text-sm font-bold text-cyan-300 border border-cyan-500/40 backdrop-blur-md">
+          <Info className="h-4 w-4 text-cyan-400" />
           {feedback}
         </div>
       )}
 
-      {/* Filter Controls & Search Bar */}
-      <div className="rounded-3xl border border-slate-200 bg-white p-4 sm:p-6 shadow-xs space-y-4">
+      {/* Filter Controls & Search Bar (Dark Glass) */}
+      <div className="rounded-3xl border border-slate-800/80 bg-slate-900/60 p-4 sm:p-6 backdrop-blur-2xl shadow-xl space-y-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           {/* Search Input */}
           <div className="relative flex-1 max-w-md">
@@ -236,21 +236,21 @@ export default function ArtworkExplorer({
                 fetchArtworks(filterStatus, filterCategory, e.target.value);
               }}
               placeholder="Search by artwork title or tags..."
-              className="w-full rounded-full border border-slate-200 bg-slate-50 pl-10 pr-4 py-2 text-sm outline-none transition focus:border-cyan-500 focus:bg-white focus:ring-4 focus:ring-cyan-100"
+              className="w-full rounded-full border border-slate-800 bg-slate-950/80 pl-10 pr-4 py-2 text-sm font-semibold text-white placeholder-slate-500 outline-none transition focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/20"
             />
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
             {/* Category Select */}
             <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-slate-500" />
+              <Filter className="h-4 w-4 text-slate-400" />
               <select
                 value={filterCategory}
                 onChange={(e) => {
                   setFilterCategory(e.target.value);
                   fetchArtworks(filterStatus, e.target.value, searchTerm);
                 }}
-                className="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 outline-none focus:border-cyan-500"
+                className="rounded-full border border-slate-800 bg-slate-950 px-3.5 py-2 text-xs font-extrabold text-slate-200 outline-none focus:border-cyan-500"
               >
                 <option value="all">All Categories</option>
                 {metrics.topCategories.map((c) => (
@@ -262,12 +262,12 @@ export default function ArtworkExplorer({
             </div>
 
             {/* View Mode Toggle */}
-            <div className="flex items-center rounded-full border border-slate-200 bg-slate-50 p-1">
+            <div className="flex items-center rounded-full border border-slate-800 bg-slate-950 p-1">
               <button
                 type="button"
                 onClick={() => setViewMode("grid")}
                 className={`rounded-full p-1.5 transition ${
-                  viewMode === "grid" ? "bg-white text-slate-950 shadow-xs" : "text-slate-500 hover:text-slate-900"
+                  viewMode === "grid" ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-md" : "text-slate-400 hover:text-white"
                 }`}
                 title="Grid View"
               >
@@ -277,7 +277,7 @@ export default function ArtworkExplorer({
                 type="button"
                 onClick={() => setViewMode("table")}
                 className={`rounded-full p-1.5 transition ${
-                  viewMode === "table" ? "bg-white text-slate-950 shadow-xs" : "text-slate-500 hover:text-slate-900"
+                  viewMode === "table" ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-md" : "text-slate-400 hover:text-white"
                 }`}
                 title="Table View"
               >
@@ -288,16 +288,16 @@ export default function ArtworkExplorer({
             <button
               type="button"
               onClick={() => fetchArtworks(filterStatus, filterCategory, searchTerm)}
-              className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 transition hover:bg-slate-50"
+              className="inline-flex items-center gap-1.5 rounded-full border border-slate-800 bg-slate-800/80 px-4 py-2 text-xs font-extrabold text-white transition hover:bg-slate-700"
             >
-              <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? "animate-spin text-cyan-600" : ""}`} />
+              <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? "animate-spin text-cyan-400" : ""}`} />
               Refresh
             </button>
           </div>
         </div>
 
         {/* Status Filter Pills */}
-        <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-100">
+        <div className="flex flex-wrap gap-2 pt-3 border-t border-slate-800/60">
           {["all", "published", "unpublished"].map((st) => (
             <button
               key={st}
@@ -308,8 +308,8 @@ export default function ArtworkExplorer({
               }}
               className={`rounded-full px-4 py-1.5 text-xs font-extrabold capitalize transition ${
                 filterStatus === st
-                  ? "bg-slate-950 text-white shadow-xs"
-                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-md shadow-cyan-600/30"
+                  : "bg-slate-950/80 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800/80"
               }`}
             >
               {st}
@@ -320,20 +320,20 @@ export default function ArtworkExplorer({
 
       {/* Artworks Content Explorer */}
       {artworks.length === 0 ? (
-        <div className="rounded-3xl border border-slate-200 bg-white p-12 text-center text-slate-500">
-          <Images className="mx-auto h-12 w-12 text-slate-300" />
-          <p className="mt-4 text-base font-bold text-slate-800">No artwork records match your criteria.</p>
-          <p className="mt-1 text-xs text-slate-500">Try adjusting your search filters or clearing search queries.</p>
+        <div className="rounded-3xl border border-slate-800/80 bg-slate-900/60 p-12 text-center text-slate-400 backdrop-blur-2xl">
+          <Images className="mx-auto h-12 w-12 text-slate-600" />
+          <p className="mt-4 text-base font-extrabold text-white">No artwork records match your criteria.</p>
+          <p className="mt-1 text-xs font-semibold text-slate-400">Try adjusting your search filters or clearing search queries.</p>
         </div>
       ) : viewMode === "grid" ? (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {artworks.map((artwork) => (
             <div
               key={artwork._id}
-              className="group flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xs transition hover:shadow-md"
+              className="group flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-800/80 bg-slate-900/60 backdrop-blur-2xl shadow-xl transition-all duration-300 hover:-translate-y-1 hover:border-cyan-500/40 hover:shadow-cyan-500/10"
             >
               <div>
-                <div className="relative aspect-4/3 w-full overflow-hidden bg-slate-100">
+                <div className="relative aspect-4/3 w-full overflow-hidden bg-slate-950">
                   <img
                     src={artwork.imageUrl}
                     alt={artwork.title}
@@ -341,10 +341,10 @@ export default function ArtworkExplorer({
                   />
                   <div className="absolute top-3 right-3 flex gap-1.5">
                     <span
-                      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-extrabold backdrop-blur-md shadow-xs ${
+                      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-black backdrop-blur-md shadow-md ${
                         artwork.isPublished
-                          ? "bg-emerald-950/80 text-emerald-300 ring-1 ring-emerald-500/30"
-                          : "bg-rose-950/80 text-rose-300 ring-1 ring-rose-500/30"
+                          ? "bg-emerald-950/90 text-emerald-300 border border-emerald-500/40"
+                          : "bg-rose-950/90 text-rose-300 border border-rose-500/40"
                       }`}
                     >
                       {artwork.isPublished ? "Published" : "Delisted"}
@@ -354,51 +354,51 @@ export default function ArtworkExplorer({
 
                 <div className="p-4 space-y-3">
                   <div>
-                    <h3 className="truncate text-base font-extrabold text-slate-950">{artwork.title}</h3>
-                    <span className="inline-block mt-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-bold text-slate-600">
+                    <h3 className="truncate text-base font-black text-white">{artwork.title}</h3>
+                    <span className="inline-block mt-1 rounded-full bg-slate-950 border border-slate-800 px-2.5 py-0.5 text-[11px] font-bold text-slate-300">
                       {artwork.category}
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
+                  <div className="flex items-center gap-2 pt-2 border-t border-slate-800/60">
                     {artwork.artist?.artistProfile?.avatar ? (
                       <img
                         src={artwork.artist.artistProfile.avatar}
                         alt="Artist"
-                        className="h-7 w-7 rounded-xl object-cover border border-slate-200"
+                        className="h-7 w-7 rounded-xl object-cover border border-slate-700"
                       />
                     ) : (
-                      <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-slate-100 text-slate-600 font-bold text-xs">
+                      <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-slate-800 text-slate-300 font-bold text-xs">
                         <User className="h-3.5 w-3.5" />
                       </span>
                     )}
-                    <span className="truncate text-xs font-bold text-slate-800">
+                    <span className="truncate text-xs font-extrabold text-slate-200">
                       {artwork.artist?.artistProfile?.displayName || artwork.artist?.username || "Artist"}
                     </span>
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50/60 p-3">
-                <div className="flex items-center gap-3 text-xs text-slate-500 font-semibold">
+              <div className="flex items-center justify-between border-t border-slate-800/80 bg-slate-950/60 p-3">
+                <div className="flex items-center gap-3 text-xs text-slate-400 font-semibold">
                   <span className="flex items-center gap-1"><Eye className="h-3.5 w-3.5 text-slate-400" />{artwork.views}</span>
-                  <span className="flex items-center gap-1"><Heart className="h-3.5 w-3.5 text-rose-500" />{artwork.likesCount}</span>
+                  <span className="flex items-center gap-1"><Heart className="h-3.5 w-3.5 text-rose-400" />{artwork.likesCount}</span>
                 </div>
 
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1.5">
                   <button
                     type="button"
                     disabled={actionId === artwork._id}
                     onClick={() => handleTogglePublished(artwork)}
-                    className={`rounded-xl p-2 transition ${
+                    className={`rounded-xl p-2 transition border ${
                       artwork.isPublished
-                        ? "text-slate-400 hover:bg-rose-50 hover:text-rose-600"
-                        : "text-emerald-600 hover:bg-emerald-50"
+                        ? "text-slate-400 border-slate-800 hover:bg-rose-950/50 hover:text-rose-400 hover:border-rose-500/40"
+                        : "text-emerald-400 border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20"
                     }`}
                     title={artwork.isPublished ? "Delist Artwork" : "Publish Artwork"}
                   >
                     {actionId === artwork._id ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <Loader2 className="h-4 w-4 animate-spin text-cyan-400" />
                     ) : artwork.isPublished ? (
                       <EyeOff className="h-4 w-4" />
                     ) : (
@@ -409,7 +409,7 @@ export default function ArtworkExplorer({
                   <button
                     type="button"
                     onClick={() => setSelectedArtwork(artwork)}
-                    className="rounded-xl bg-slate-950 p-2 text-white transition hover:bg-cyan-700"
+                    className="rounded-xl bg-cyan-600 p-2 text-white transition hover:bg-cyan-500 shadow-md shadow-cyan-600/20"
                     title="Inspect Details"
                   >
                     <Info className="h-4 w-4" />
@@ -420,10 +420,10 @@ export default function ArtworkExplorer({
           ))}
         </div>
       ) : (
-        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xs">
+        <div className="overflow-hidden rounded-3xl border border-slate-800/80 bg-slate-900/60 backdrop-blur-2xl shadow-2xl">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-slate-600">
-              <thead className="bg-slate-50 text-xs font-extrabold uppercase tracking-wider text-slate-500 border-b border-slate-100">
+            <table className="w-full text-left text-sm text-slate-300">
+              <thead className="bg-slate-950/90 text-xs font-black uppercase tracking-wider text-slate-400 border-b border-slate-800">
                 <tr>
                   <th className="px-6 py-4">Artwork</th>
                   <th className="px-6 py-4">Artist</th>
@@ -433,19 +433,19 @@ export default function ArtworkExplorer({
                   <th className="px-6 py-4">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-800/60">
                 {artworks.map((artwork) => (
-                  <tr key={artwork._id} className="transition hover:bg-slate-50/80">
+                  <tr key={artwork._id} className="transition hover:bg-slate-800/50">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <img
                           src={artwork.imageUrl}
                           alt={artwork.title}
-                          className="h-12 w-16 rounded-xl object-cover border border-slate-200"
+                          className="h-12 w-16 rounded-xl object-cover border border-slate-800"
                         />
                         <div className="min-w-0">
-                          <p className="truncate font-extrabold text-slate-950">{artwork.title}</p>
-                          <p className="text-xs text-slate-400">{new Date(artwork.createdAt).toLocaleDateString()}</p>
+                          <p className="truncate font-black text-white">{artwork.title}</p>
+                          <p className="text-xs font-mono text-slate-400">{new Date(artwork.createdAt).toLocaleDateString()}</p>
                         </div>
                       </div>
                     </td>
@@ -456,38 +456,38 @@ export default function ArtworkExplorer({
                           <img
                             src={artwork.artist.artistProfile.avatar}
                             alt="Avatar"
-                            className="h-7 w-7 rounded-xl object-cover border border-slate-200"
+                            className="h-7 w-7 rounded-xl object-cover border border-slate-700"
                           />
                         ) : (
-                          <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-slate-100 text-slate-600 font-bold text-xs">
+                          <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-slate-800 text-slate-400 font-bold text-xs">
                             <User className="h-3.5 w-3.5" />
                           </span>
                         )}
-                        <span className="font-bold text-slate-900">
+                        <span className="font-extrabold text-slate-200">
                           {artwork.artist?.artistProfile?.displayName || artwork.artist?.username || "Artist"}
                         </span>
                       </div>
                     </td>
 
                     <td className="px-6 py-4">
-                      <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">
+                      <span className="rounded-full bg-slate-950 border border-slate-800 px-3 py-1 text-xs font-bold text-slate-300">
                         {artwork.category}
                       </span>
                     </td>
 
-                    <td className="px-6 py-4 font-semibold text-slate-700">
+                    <td className="px-6 py-4 font-semibold text-slate-300">
                       <div className="flex items-center gap-3 text-xs">
                         <span>{artwork.views} views</span>
-                        <span className="text-rose-600 font-bold">{artwork.likesCount} likes</span>
+                        <span className="text-rose-400 font-extrabold">{artwork.likesCount} likes</span>
                       </div>
                     </td>
 
                     <td className="px-6 py-4">
                       <span
-                        className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-extrabold ${
+                        className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-extrabold border ${
                           artwork.isPublished
-                            ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
-                            : "bg-rose-50 text-rose-700 ring-1 ring-rose-200"
+                            ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
+                            : "bg-rose-500/10 text-rose-400 border-rose-500/30"
                         }`}
                       >
                         {artwork.isPublished ? "Published" : "Delisted"}
@@ -500,10 +500,10 @@ export default function ArtworkExplorer({
                           type="button"
                           disabled={actionId === artwork._id}
                           onClick={() => handleTogglePublished(artwork)}
-                          className={`rounded-xl px-3 py-1.5 text-xs font-bold transition ${
+                          className={`rounded-xl px-3.5 py-1.5 text-xs font-extrabold transition border ${
                             artwork.isPublished
-                              ? "bg-rose-50 text-rose-700 hover:bg-rose-100"
-                              : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                              ? "bg-rose-500/20 text-rose-300 border-rose-500/40 hover:bg-rose-500/30"
+                              : "bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30"
                           }`}
                         >
                           {artwork.isPublished ? "Delist" : "Publish"}
@@ -512,7 +512,7 @@ export default function ArtworkExplorer({
                         <button
                           type="button"
                           onClick={() => setSelectedArtwork(artwork)}
-                          className="rounded-xl bg-slate-900 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-cyan-700"
+                          className="rounded-xl bg-cyan-600 px-3.5 py-1.5 text-xs font-extrabold text-white transition hover:bg-cyan-500 shadow-md shadow-cyan-600/20"
                         >
                           Inspect
                         </button>
@@ -526,25 +526,25 @@ export default function ArtworkExplorer({
         </div>
       )}
 
-      {/* Slide-over Inspection Drawer */}
+      {/* Obsidian Glass Slide-over Inspection Drawer */}
       {selectedArtwork && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-slate-950/40 backdrop-blur-xs">
-          <div className="w-full max-w-lg bg-white p-6 shadow-2xl overflow-y-auto space-y-6 animate-in slide-in-from-right duration-200">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+        <div className="fixed inset-0 z-50 flex justify-end bg-slate-950/80 backdrop-blur-md">
+          <div className="w-full max-w-lg bg-slate-950/95 text-slate-100 p-6 sm:p-8 shadow-2xl overflow-y-auto space-y-6 animate-in slide-in-from-right duration-200 border-l border-slate-800 backdrop-blur-2xl">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
               <div>
-                <h3 className="text-xl font-extrabold text-slate-950">Artwork Telemetry & Details</h3>
-                <p className="text-xs font-semibold text-slate-500">ID: {selectedArtwork._id}</p>
+                <h3 className="text-xl font-black text-white">Artwork Telemetry & Details</h3>
+                <p className="text-xs font-mono text-slate-400">ID: {selectedArtwork._id}</p>
               </div>
               <button
                 type="button"
                 onClick={() => setSelectedArtwork(null)}
-                className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-900"
+                className="rounded-2xl bg-slate-900 p-2.5 text-slate-400 transition hover:bg-slate-800 hover:text-white border border-slate-800"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-950">
+            <div className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 shadow-inner">
               <img
                 src={selectedArtwork.imageUrl}
                 alt={selectedArtwork.title}
@@ -552,39 +552,39 @@ export default function ArtworkExplorer({
               />
             </div>
 
-            <div className="space-y-4 rounded-2xl bg-slate-50 p-4 text-sm">
-              <div className="flex justify-between border-b border-slate-200/60 pb-2">
-                <span className="font-semibold text-slate-500">Title</span>
-                <span className="font-extrabold text-slate-950">{selectedArtwork.title}</span>
+            <div className="space-y-3 rounded-3xl bg-slate-900/90 border border-slate-800/80 p-5 text-sm">
+              <div className="flex justify-between border-b border-slate-800 pb-2.5">
+                <span className="font-semibold text-slate-400">Title</span>
+                <span className="font-black text-white">{selectedArtwork.title}</span>
               </div>
-              <div className="flex justify-between items-start border-b border-slate-200/60 pb-2">
-                <span className="font-semibold text-slate-500">Artist</span>
+              <div className="flex justify-between items-start border-b border-slate-800 pb-2.5">
+                <span className="font-semibold text-slate-400">Artist</span>
                 <div className="text-right">
-                  <p className="font-bold text-slate-950">
+                  <p className="font-extrabold text-white">
                     {selectedArtwork.artist?.artistProfile?.displayName || selectedArtwork.artist?.username}
                   </p>
-                  <p className="text-xs font-mono text-slate-500">{selectedArtwork.artist?.email}</p>
+                  <p className="text-xs font-mono text-slate-400">{selectedArtwork.artist?.email}</p>
                 </div>
               </div>
-              <div className="flex justify-between border-b border-slate-200/60 pb-2">
-                <span className="font-semibold text-slate-500">Category</span>
-                <span className="font-bold text-slate-800">{selectedArtwork.category}</span>
+              <div className="flex justify-between border-b border-slate-800 pb-2.5">
+                <span className="font-semibold text-slate-400">Category</span>
+                <span className="font-extrabold text-cyan-400">{selectedArtwork.category}</span>
               </div>
-              <div className="flex justify-between border-b border-slate-200/60 pb-2">
-                <span className="font-semibold text-slate-500">Engagement</span>
-                <span className="font-bold text-slate-900">
+              <div className="flex justify-between border-b border-slate-800 pb-2.5">
+                <span className="font-semibold text-slate-400">Engagement</span>
+                <span className="font-bold text-slate-200">
                   {selectedArtwork.views} views • {selectedArtwork.likesCount} likes
                 </span>
               </div>
-              <div className="flex justify-between border-b border-slate-200/60 pb-2">
-                <span className="font-semibold text-slate-500">Published Status</span>
-                <span className={`font-bold ${selectedArtwork.isPublished ? "text-emerald-700" : "text-rose-700"}`}>
+              <div className="flex justify-between border-b border-slate-800 pb-2.5">
+                <span className="font-semibold text-slate-400">Published Status</span>
+                <span className={`font-black ${selectedArtwork.isPublished ? "text-emerald-400" : "text-rose-400"}`}>
                   {selectedArtwork.isPublished ? "Live in feeds" : "Delisted"}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="font-semibold text-slate-500">Uploaded On</span>
-                <span className="font-semibold text-slate-800">
+                <span className="font-semibold text-slate-400">Uploaded On</span>
+                <span className="font-semibold text-slate-300">
                   {new Date(selectedArtwork.createdAt).toLocaleString()}
                 </span>
               </div>
@@ -592,10 +592,10 @@ export default function ArtworkExplorer({
 
             {selectedArtwork.tags && selectedArtwork.tags.length > 0 && (
               <div className="space-y-2">
-                <h4 className="text-xs font-extrabold uppercase text-slate-400 tracking-wider">Associated Tags</h4>
+                <h4 className="text-xs font-black uppercase text-slate-400 tracking-wider">Associated Tags</h4>
                 <div className="flex flex-wrap gap-1.5">
                   {selectedArtwork.tags.map((tag) => (
-                    <span key={tag} className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">
+                    <span key={tag} className="rounded-full bg-slate-900 border border-slate-800 px-3 py-1 text-xs font-bold text-slate-300">
                       #{tag}
                     </span>
                   ))}
@@ -603,11 +603,11 @@ export default function ArtworkExplorer({
               </div>
             )}
 
-            <div className="space-y-3 border-t border-slate-100 pt-4">
+            <div className="space-y-3 border-t border-slate-800 pt-4">
               <Link
                 href={`/artwork/${selectedArtwork._id}`}
                 target="_blank"
-                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-bold text-white transition hover:bg-cyan-700"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-cyan-600 px-4 py-3 text-sm font-black text-white transition hover:bg-cyan-500 shadow-lg shadow-cyan-600/25"
               >
                 View Live Page on Site
               </Link>
@@ -615,10 +615,10 @@ export default function ArtworkExplorer({
               <button
                 type="button"
                 onClick={() => handleTogglePublished(selectedArtwork)}
-                className={`inline-flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-bold transition ${
+                className={`inline-flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-black transition ${
                   selectedArtwork.isPublished
-                    ? "bg-rose-500 text-white hover:bg-rose-600"
-                    : "bg-emerald-600 text-white hover:bg-emerald-700"
+                    ? "bg-rose-600 text-white hover:bg-rose-500 shadow-lg shadow-rose-600/25"
+                    : "bg-emerald-600 text-white hover:bg-emerald-500 shadow-lg shadow-emerald-600/25"
                 }`}
               >
                 {selectedArtwork.isPublished ? "Delist from Public Feeds" : "Publish to Public Feeds"}
@@ -627,7 +627,7 @@ export default function ArtworkExplorer({
               <button
                 type="button"
                 onClick={() => handleDeleteArtwork(selectedArtwork._id)}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm font-bold text-rose-700 transition hover:bg-rose-100"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-rose-500/40 bg-rose-950/50 px-4 py-2.5 text-sm font-extrabold text-rose-300 transition hover:bg-rose-900/60"
               >
                 <Trash2 className="h-4 w-4" />
                 Permanently Purge Record
